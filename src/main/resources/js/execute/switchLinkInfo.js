@@ -90,14 +90,14 @@ induction.switchLinkInfo = function () {
                         return _.chain(switches).filter(function (ss) {
                             return ss.WWN === psp.WWN;
                         }).map(function (xx) {
-                            return {name: xx.name, ip: xx.ip};
+                            return {name: xx.name, switchIp: xx.ip};
                         }).value();
                     }));
-                    rs.linkstorage = _.flatten(_.map(prime_switch.ports, function (psp) {
+                    rs.linkstor = _.flatten(_.map(prime_switch.ports, function (psp) {
                         return _.chain(storages).filter(function (s) {
                             return psp.WWN === s.PERMANENT_ADDRESS;
                         }).map(function (ss) {
-                            return {name: ss.NAME, ip: ss.IP};
+                            return {name: ss.NAME, storIp: ss.IP};
                         }).value();
                     }));
 
