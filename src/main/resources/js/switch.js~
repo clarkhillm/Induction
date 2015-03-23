@@ -1,0 +1,8 @@
+induction.switchExecute = function () {
+    var sql = "select a.ID,a.SYS_ID,a.WWN,b.ID,b.NAME,b.IP from storage_core_beta1015.switch a, storage_core_beta1015.stor_system b where a.SYS_ID=b.ID";
+    return {
+        getSQL: function () {
+            return sql;
+        }
+    }
+};

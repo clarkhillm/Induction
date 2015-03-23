@@ -1,0 +1,10 @@
+var induction = {};
+var log;
+var jdbcTemplate;
+var tool;
+
+induction.Base = (function () {
+    return {
+        test: 'base .. test..'
+    }
+}());

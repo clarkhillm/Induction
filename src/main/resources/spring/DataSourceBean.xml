@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  http://www.springframework.org/schema/tx
+  http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          destroy-method="close">
+        <property name="driverClass" value="${jdbc.driverClassName}"/>
+        <property name="description"
+                  value="DataSource for SkyFormRes Core Service"/>
+        <property name="jdbcUrl" value="${skyware.jdbc.url}"/>
+        <property name="user" value="${skyware.jdbc.username}"/>
+        <property name="password" value="${skyware.jdbc.password}"/>
+        <property name="minPoolSize" value="${c3p0.minPoolSize}"/>
+        <property name="maxPoolSize" value="${c3p0.maxPoolSize}"/>
+        <property name="initialPoolSize" value="${c3p0.initialPoolSize}"/>
+        <property name="maxIdleTime" value="${c3p0.maxIdleTime}"/>
+        <property name="idleConnectionTestPeriod"
+                  value="${c3p0.idleConnectionTestPeriod}"/>
+        <property name="automaticTestTable" value="${c3p0.automaticTestTable}"/>
+        <property name="maxStatements" value="${c3p0.maxStatements}"/>
+        <property name="testConnectionOnCheckin"
+                  value="${c3p0.testConnectionOnCheckin}"/>
+    </bean>
+
+    <bean id="storageCoreJdbcTemplate"
+          class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="storageCoreTxManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="storageCoreTxManager"/>
+</beans>

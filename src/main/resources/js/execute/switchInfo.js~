@@ -1,0 +1,33 @@
+induction.switchInfo = function () {
+    var base = this;
+
+    var sql = "SELECT A.ID,A.SYS_ID,A.WWN,B.ID,B.NAME,B.IP FROM SWITCH A, STOR_SYSTEM B WHERE A.SYS_ID=B.ID AND B.TYPE=2 limit ?,?";
+
+    return {
+        execute: function (p) {
+
+            log.debug('--switchInfo.js-- parameter ' + JSON.stringify(p));
+            log.debug('--switchInfo.js-- sql ' + '\n' + sql);
+
+            var startIndex = (p.pageNum - 1) * p.rows;
+
+            var a = java.lang.reflect.Array.newInstance(java.lang.Integer, 2);
+            a[0] = startIndex;
+            a[1] = p.rows;
+
+            var data = JSON.parse(tool.toJSON(jdbcTemplate.queryForList(sql, a)));
+
+            log.debug('--switchInfo.js-- ' + 'data.length: ' + data.length);
+
+            return {
+                switchinf: _.map(data, function (o) {
+                    return {
+                        switchname: o.NAME,
+                        ip: o.IP
+                    };
+                })
+            };
+        }
+    }
+};
+
