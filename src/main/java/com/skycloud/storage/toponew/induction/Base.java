@@ -62,7 +62,7 @@ public abstract class Base {
             String evalString = "var " + prefix + key + "_result = JSON.stringify(" + prefix + key + "." + functionName + ");";
             log.debug(evalString);
             E.eval(evalString);
-            log.debug(MessageFormat.format("js return : {0}", E.get(prefix + key + "_result")));
+//            log.debug(MessageFormat.format("js return : {0}", E.get(prefix + key + "_result")));
             return E.get(prefix + key + "_result").toString();
         } catch (ScriptException e) {
             e.printStackTrace();
