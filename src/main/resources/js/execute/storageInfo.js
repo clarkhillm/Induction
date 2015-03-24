@@ -10,7 +10,7 @@ induction.storageInfo = function () {
     return {
         execute: function (p) {
 
-            if (!p) {
+            if (!(p && p.conditions)) {
                 $.log("parameter input " + p);
                 p = {
                     "pageNum": 1,

@@ -17,23 +17,14 @@ induction.switchInfo = function () {
          */
         execute: function (p) {
 
-            if (!p) {
+            if (!(p && p.conditions)) {
                 $.log("parameter input " + p);
                 p = {
                     "pageNum": 1,
                     "rows": 20,
                     "conditions": {"ip": [], "name": []}
                 };
-            } else {
-                if (!p.conditions) {
-                    p = {
-                        "pageNum": 1,
-                        "rows": 20,
-                        "conditions": {"ip": [], "name": []}
-                    };
-                }
             }
-
             $.log('parameter :' + '\n' + JSON.stringify(p));
 
             var condition = p.conditions;
