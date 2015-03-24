@@ -11,7 +11,7 @@ induction.storageInfo = function () {
         execute: function (p) {
 
             if (!(p && p.conditions)) {
-                $.log("parameter input " + p);
+                $.log('parameter input ' + p);
                 p = {
                     "pageNum": 1,
                     "rows": 20,
@@ -26,14 +26,14 @@ induction.storageInfo = function () {
                 sql = sql.replace('@condition', '');
             }
             if (condition.ip.length > 0) {
-                var condition_string = "";
+                var condition_string = '';
                 _.each(condition.ip, function (ip) {
-                    condition_string = condition_string + " IP='" + ip + "' OR ";
+                    condition_string = condition_string + ' IP=\'' + ip + '\' OR ';
                 });
                 sql = sql.replace('@condition', ' AND (' + condition_string + ' FALSE )');
             } else {
                 if (condition.name.length > 0) {
-                    sql = sql.replace('@condition', " AND NAME like '%" + condition.name + "%' ");
+                    sql = sql.replace('@condition', ' AND NAME like \'%' + condition.name + '%\' ');
                 }
             }
             $.log('sql :' + '\n' + sql);
