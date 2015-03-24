@@ -7,6 +7,7 @@
 var javaArray = java.lang.reflect.Array;
 var mf = java.text.MessageFormat.format;
 var javaInteger = java.lang.Integer;
+var UUID = java.util.UUID;
 
 var _$log;
 var _$fileName;
@@ -17,6 +18,10 @@ var induction = {};
 
 var $mf = function () {
     return mf(_.first(arguments), _.rest(arguments));
+};
+
+var $genUUID = function () {
+    return UUID.randomUUID().toString();
 };
 
 var $queryForList = function () {
