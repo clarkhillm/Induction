@@ -8,7 +8,7 @@ public class Executor extends Base {
     @Override
     public Object execute(String key, String parameters) {
         init(key);
-        loadJS();
+        loadJS(key);
         return toJSONObject(executeMethod("execute(" + parameters + ")"));
     }
 }

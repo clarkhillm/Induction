@@ -24,6 +24,14 @@ induction.switchInfo = function () {
                     "rows": 20,
                     "conditions": {"ip": [], "name": []}
                 };
+            } else {
+                if (!p.conditions) {
+                    p = {
+                        "pageNum": 1,
+                        "rows": 20,
+                        "conditions": {"ip": [], "name": []}
+                    };
+                }
             }
 
             $.log('parameter :' + '\n' + JSON.stringify(p));
