@@ -58,4 +58,3 @@ induction.switchInfo = function () {
         }
     }
 };
-

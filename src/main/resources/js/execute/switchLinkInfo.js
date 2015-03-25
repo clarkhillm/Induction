@@ -15,7 +15,7 @@ induction.switchLinkInfo = function () {
         'STOR_PORT A , STOR_SYSTEM B ' +
         'WHERE A.SYS_ID = B.ID AND A.PERMANENT_ADDRESS IS NOT NULL AND A.PERMANENT_ADDRESS !=\'\'';
 
-    var storages = [];
+    var physicalSQL = 'SELECT A.IP,A.UUID,A.NAME,B.WWN FROM SYS_PHYSICAL_HOST A , SYS_PHYSICAL_HBA B WHERE A.UUID=B.HOST_UUID';
 
     return {
         execute: function (p) {
@@ -76,12 +76,15 @@ induction.switchLinkInfo = function () {
                 //return {switches: switches, length: switches.length};
 
                 $.log($mf('storage info sql : {0}', storagePortSQL));
-                storages = $queryForList(storagePortSQL);
+                var storages = $queryForList(storagePortSQL);
                 storages = _.map(storages, function (storage) {
                     storage.PERMANENT_ADDRESS = storage.PERMANENT_ADDRESS.replace(/:/g, '').toLowerCase();
                     return storage;
                 });
                 //return {length: storages.length, storage: storages};
+
+                var hosts = $queryForList(physicalSQL);
+                //return hosts;
 
                 var switchLinkInfo = _.map(switches, function (prime_switch) {
                     var rs = {};
@@ -98,6 +101,13 @@ induction.switchLinkInfo = function () {
                             return psp.WWN === s.PERMANENT_ADDRESS;
                         }).map(function (ss) {
                             return {name: ss.NAME, storIp: ss.IP};
+                        }).value();
+                    }));
+                    rs.linkhost = _.flatten(_.map(prime_switch.ports, function (psp) {
+                        return _.chain(hosts).filter(function (s) {
+                            return psp.WWN === s.WWN;
+                        }).map(function (ss) {
+                            return {name: ss.NAME, hostIp: ss.IP};
                         }).value();
                     }));
 
