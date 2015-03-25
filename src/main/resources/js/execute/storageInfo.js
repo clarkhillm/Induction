@@ -1,6 +1,7 @@
 /**
- * Created by gavin on 2015/3/20.
- */
+    * Created by Gavin Cui on 2015/3/20.
+    * 查询存储设备信息。
+    */
 
 induction.storageInfo = function () {
     var $ = this;
