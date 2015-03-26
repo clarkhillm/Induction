@@ -45,14 +45,22 @@ induction.storageLinkInfo = function () {
 
             //return {storage: storageInfo, length: storageInfo.length};
 
+            var sp = _.chain(storageInfo).map(function (s) {
+                return s.PERMANENT_ADDRESS;
+            }).uniq().value();
+            //return sp;
+
             $.log($mf('switch port info sql : {0}', switchPortSQL));
             var switchInfo = _.map($queryForList(switchPortSQL), function (i) {
                 i.WWN = i.WWN.replace(/:/g, '').toLocaleLowerCase();
                 return i;
             });
+            switchInfo = _.filter(switchInfo, function (s) {
+                return _.contains(sp, s.WWN);
+            });
             //return {s: switchInfo, l: switchInfo.length};
 
-            var rs = {linkInf: []};
+            var rs = {};
             storageInfo = _.chain(storageInfo).map(function (storage) {
                 storage.ports = _.chain(storageInfo)
                     .filter(function (s) {
@@ -69,7 +77,6 @@ induction.storageLinkInfo = function () {
 
             rs.rs = storageInfo;
             rs.length = rs.rs.length;
-
             //return rs;
 
             rs = {linkInf: []};
