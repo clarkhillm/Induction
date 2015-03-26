@@ -42,9 +42,27 @@ var $JavaIntArray = function () {
 
 induction.Base = (function () {
     return {
+        /**
+         * 处理参数,排除错误的情况。
+         * @param p a json string like : {"pageNum":1,"rows":20,"conditions":{"ip":[],"name":""}}
+         * @returns {*}
+         */
+        checkParameters: function (p) {
+            if (!(p && p.conditions)) {
+                this.log('parameter input ' + p);
+                p = {
+                    "pageNum": 1,
+                    "rows": 20,
+                    "conditions": {"ip": [], "name": []}
+                };
+            }
+            this.log('parameter :' + '\n' + JSON.stringify(p));
+            return p;
+        },
         start: function (pageNum, rows) {
             return $JavaIntArray((pageNum - 1) * rows, rows);
-        },
+        }
+        ,
         log: function (message, level) {
             if (!level) {
                 level = 'debug';

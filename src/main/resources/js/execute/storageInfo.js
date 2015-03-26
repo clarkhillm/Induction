@@ -1,7 +1,7 @@
 /**
-    * Created by Gavin Cui on 2015/3/20.
-    * 查询存储设备信息。
-    */
+ * Created by Gavin Cui on 2015/3/20.
+ * 查询存储设备信息。
+ */
 
 induction.storageInfo = function () {
     var $ = this;
@@ -10,17 +10,7 @@ induction.storageInfo = function () {
 
     return {
         execute: function (p) {
-
-            if (!(p && p.conditions)) {
-                $.log('parameter input ' + p);
-                p = {
-                    "pageNum": 1,
-                    "rows": 20,
-                    "conditions": {"ip": [], "name": []}
-                };
-            }
-
-            $.log('parameter :' + '\n' + JSON.stringify(p));
+            p = $.checkParameters(p);
 
             var condition = p.conditions;
             if (condition.ip.length == 0 && condition.name.length == 0) {

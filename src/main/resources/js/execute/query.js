@@ -4,7 +4,7 @@
  */
 
 induction.query = function () {
-    var sql = 'SELECT IP from stor_system where type=2 ';
+    var sql = 'SELECT IP from  sys_physical_host ';
     return {
         execute: function () {
             var data = $queryForList(sql);

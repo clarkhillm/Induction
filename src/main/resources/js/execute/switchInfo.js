@@ -16,17 +16,7 @@ induction.switchInfo = function () {
          * @returns {{switchinf: (Array|*)}}
          */
         execute: function (p) {
-
-            if (!(p && p.conditions)) {
-                $.log("parameter input " + p);
-                p = {
-                    "pageNum": 1,
-                    "rows": 20,
-                    "conditions": {"ip": [], "name": []}
-                };
-            }
-            $.log('parameter :' + '\n' + JSON.stringify(p));
-
+            p = $.checkParameters(p);
             var condition = p.conditions;
             if (condition.ip.length == 0 && condition.name.length == 0) {
                 sql = sql.replace('@condition', '');
