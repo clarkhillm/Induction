@@ -12,10 +12,11 @@ induction.storageLinkInfo = function () {
         + ' a.ip,'
         + ' b.PERMANENT_ADDRESS'
         + ' FROM stor_system a, stor_port b'
-        + ' WHERE a.type = 1 AND a.id = b.SYS_ID AND b.PERMANENT_ADDRESS IS NOT NULL  ' +
-        'AND ({0})';
+        + ' WHERE a.type = 1 AND a.id = b.SYS_ID AND b.PERMANENT_ADDRESS IS NOT NULL  '
+        + 'AND ({0})';
 
     var switchPortSQL = 'SELECT ' +
+        'A.ID,' +
         'A.IP,A.NAME,B.WWN FROM ' +
         'STOR_SYSTEM A , SWITCH_PORT B ' +
         'WHERE A.ID=B.SYS_ID AND B.WWN !=\'\' AND B.WWN IS NOT NULL';
@@ -51,7 +52,7 @@ induction.storageLinkInfo = function () {
             });
             //return {s: switchInfo, l: switchInfo.length};
 
-            var rs = {rs: []};
+            var rs = {linkInf: []};
             storageInfo = _.chain(storageInfo).map(function (storage) {
                 storage.ports = _.chain(storageInfo)
                     .filter(function (s) {
@@ -69,6 +70,29 @@ induction.storageLinkInfo = function () {
             rs.rs = storageInfo;
             rs.length = rs.rs.length;
 
+            //return rs;
+
+            rs = {linkInf: []};
+            rs.linkInf = _.map(storageInfo, function (st) {
+                var rs = {};
+                rs.storIp = st.ip;
+                rs.storName = st.name;
+
+                rs.linkSwitch = _.flatten(_.map(st.ports, function (p) {
+                    return _.chain(switchInfo)
+                        .filter(function (s) {
+                            return s.WWN === p;
+                        }).map(function (s) {
+                            return {ip: s.IP, name: s.NAME};
+                        }).uniq(function (s) {
+                            return s.ID;
+                        }).value();
+                }));
+
+                return rs;
+            });
+
+            rs.length = rs.linkInf.length;
             return rs;
         }
     }
