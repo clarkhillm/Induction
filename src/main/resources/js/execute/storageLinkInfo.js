@@ -7,12 +7,12 @@ induction.storageLinkInfo = function () {
     var $ = this;
 
     var storagePortSQL = 'SELECT '
-        + ' a.id,'
-        + ' a.name,'
-        + ' a.ip,'
-        + ' b.PERMANENT_ADDRESS'
-        + ' FROM stor_system a, stor_port b'
-        + ' WHERE a.type = 1 AND a.id = b.SYS_ID AND b.PERMANENT_ADDRESS IS NOT NULL  '
+        + ' A.ID,'
+        + ' A.NAME,'
+        + ' A.IP,'
+        + ' B.PERMANENT_ADDRESS'
+        + ' FROM STOR_SYSTEM A, STOR_PORT B'
+        + ' WHERE A.TYPE = 1 AND A.ID = B.SYS_ID AND B.PERMANENT_ADDRESS IS NOT NULL  '
         + 'AND ({0})';
 
     var switchPortSQL = 'SELECT ' +
@@ -25,13 +25,13 @@ induction.storageLinkInfo = function () {
         execute: function (p) {
 
             if (!(p && p.length > 0)) {
-                storagePortSQL = $mf(storagePortSQL, 'true');
+                storagePortSQL = $mf(storagePortSQL, 'TRUE');
             } else {
                 var condition = '';
                 _.each(p, function (pp) {
-                    condition = condition + 'a.ip=\'' + pp + '\' or ';
+                    condition = condition + 'A.IP=\'' + pp + '\' OR ';
                 });
-                condition = condition + 'false';
+                condition = condition + 'FALSE';
                 storagePortSQL = $mf(storagePortSQL, condition);
             }
 
@@ -64,15 +64,15 @@ induction.storageLinkInfo = function () {
             storageInfo = _.chain(storageInfo).map(function (storage) {
                 storage.ports = _.chain(storageInfo)
                     .filter(function (s) {
-                        return storage.id === s.id;
+                        return storage.ID === s.ID;
                     }).map(function (s) {
                         return s.PERMANENT_ADDRESS;
                     }).uniq().value();
                 return storage
             }).uniq(function (s) {
-                return s.id;
+                return s.ID;
             }).map(function (_$) {
-                return {ip: _$.ip, name: _$.name, ports: _$.ports};
+                return {ip: _$.IP, name: _$.NAME, ports: _$.ports};
             }).value();
 
             rs.rs = storageInfo;
