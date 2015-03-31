@@ -1,0 +1,42 @@
+总共需要六个接口。
+1，主机接口
+tip：可以根据ip或者主机名查询主机列表，如果ip和主机名为空，则默认返回20条(暂定)数据，支持后台分页查询。
+ JSON example：
+{
+"hostInf":[
+           {"hostname":"host1","ip":"1.1.1.1","sn":"host1sn"},
+           {"hostname":"host2","ip":"1.2.1.1","sn":"host2sn"},
+           {"hostname":"host13","ip":"1.3.1.1","sn":"host3sn"}
+          ]
+}
+
+2，主机关系查询接口
+tip：根据主机IP查询，返回主机关联的存储和交换机信息。
+JSON example：
+{
+"linkInf":[
+        {"hostIp":"1.1.1.1","linkstor":[{"storIp":"2.1.1.1","name":"stor1"}],"linkswitch":[{"switchIp":"3.1.1.1","name":"switch1"}]},
+        {"hostIp":"1.2.1.1","linkstor":[{"storIp":"2.2.1.1","name":"stor2"}],"linkswitch":[{"switchIp":"3.2.1.1","name":"switch2"}]}
+		]
+}
+
+3，存储设备接口（类似主机接口）
+4，存储关系查询接口（类似主机关系查询接口）
+
+5，交换机接口
+tip:可以根据ip或者名字查询交换机列表，如果ip和交换机名称为空，则默认返回20条（暂定）数据，支持后台分页查询。
+JSON example：
+{
+"switchInf":[
+             {"switchname":"switch1","ip":"3.1.1.1"},
+             {"switchname":"switch2","ip":"3.2.1.1"}
+            ]
+}
+6，交换机关系查询接口
+tip:根据交换机IP查询，返回交换机关联的交换机，主机，存储信息。
+JSON example：
+{
+"linkInf":[
+          {"switchIp":"3.1.1.1","linkswitch":[{"name":"switch3","SwitchIp":"3.3.1.1"}],"linkstor":[{"storIp":"2.1.1.1","name":"stor1"}],"linkhost":[{"hostIp:"1.1.1.1","name":"host1"}]}
+          ]
+}

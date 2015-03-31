@@ -18,5 +18,17 @@ public class TestMain {
         System.out.println("test = " + test.lastModified());
 
 
+        String sql="CREATE TABLE sys_relation_switch\n" +
+                "(\n" +
+                "    ID BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,\n" +
+                "    UUID VARCHAR(50),\n" +
+                "    IP VARCHAR(50),\n" +
+                "    VALUE TEXT,\n" +
+                "    SWITCH TEXT,\n" +
+                "    STORAGE TEXT,\n" +
+                "    HOST TEXT\n" +
+                ");\n";
+
+
     }
 }
