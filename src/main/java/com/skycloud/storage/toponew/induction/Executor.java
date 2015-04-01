@@ -9,6 +9,8 @@ public class Executor extends Base {
     public Object execute(String key, String parameters) {
         init(key);
         loadJS(key);
-        return toJSONObject(executeMethod(key, "execute(" + parameters + ")"));
+        Object xx = toJSONObject(executeMethod(key, "execute(" + parameters + ")"));
+        cleanModules();
+        return xx;
     }
 }

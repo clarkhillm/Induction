@@ -2,11 +2,10 @@
  *
  * Created by gavin on 4/1/15.
  */
-induction.Tool = ['query', function ($, query) {
-
+induction.Tool = function ($) {
     return {
         test: function () {
-            return 'test ..';
+            return 'test ..xxxxx';
         }
     }
-}];
+};

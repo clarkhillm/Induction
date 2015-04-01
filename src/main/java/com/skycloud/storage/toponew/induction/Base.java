@@ -152,7 +152,20 @@ public abstract class Base {
                     }
                 }
 
+                DependenceTreeNode node = createDependenceTree(dsMap, key);
+                String js = calculateJSString(node);
+                int x = js.lastIndexOf(';');
 
+                String f = js.substring(0, x);
+                int xx = js.indexOf('_');
+                String f0 = f.substring(0, xx);
+                String f1 = f.substring(xx, f.length());
+
+                f = f0 + "JSON.stringify(" + f1;
+
+                String e = js.substring(x, js.length());
+                log.debug(f + "." + functionName + ")" + e);
+                return E.eval(f + "." + functionName + ")" + e).toString();
             }
         } catch (ScriptException e) {
             e.printStackTrace();
@@ -164,8 +177,38 @@ public abstract class Base {
         return "{\"rs\":\"It seems some error occur,please check log.\"}";
     }
 
-    private String genDependenceString(String key, String dependence) {
-        return MessageFormat.format("(function($){return induction.{0}($,{1})}(induction.Base)", key.replaceAll("/", "."), dependence);
+    protected DependenceTreeNode createDependenceTree(Map<String, List<String>> input, String key) {
+        System.out.println("key = " + key);
+        DependenceTreeNode node = new DependenceTreeNode();
+        node.name = key;
+        for (String nk : input.get(key)) {
+            node.nodes.add(createDependenceTree(input, nk));
+        }
+        return node;
+    }
+
+    protected String calculateJSString(DependenceTreeNode node) {
+        String dependence = "";
+        for (DependenceTreeNode n : node.nodes) {
+            n.JSString = calculateJSString(n);
+            dependence = dependence + n.JSString + ",";
+        }
+        if (dependence.length() > 0) {
+            dependence = dependence.substring(0, dependence.length() - 1);
+        }
+        return genDependenceString(node.name, dependence, node.nodes.size() == 0);
+    }
+
+    private String genDependenceString(String key, String dependence, boolean flag) {
+        String dot = "";
+        if (dependence.length() > 0) {
+            dot = ",";
+        }
+        if (flag) {
+            return "(function($){return induction." + key.replaceAll("/", ".") + "($" + dot + dependence + ");})(induction.Base)";
+        } else {
+            return "(function($){return _.last(induction." + key.replaceAll("/", ".") + ")($" + dot + dependence + ");})(induction.Base)";
+        }
     }
 
     protected Object toJSONObject(String json) {
@@ -208,5 +251,42 @@ public abstract class Base {
         public String name;
         public List<DependenceTreeNode> nodes = new ArrayList<DependenceTreeNode>();
         public String JSString = "";
+
+        @Override
+        public String toString() {
+            return "DependenceTreeNode{" +
+                    "name='" + name + '\'' +
+                    '}';
+        }
+    }
+
+    protected void cleanModules() {
+        modules.clear();
+    }
+
+    public static void main(String[] args) {
+        Base tester = new Base() {
+            @Override
+            public Object execute(String key, String parameters) {
+                Map<String, List<String>> testMap = new HashMap<String, List<String>>();
+                testMap.put("a", Arrays.asList("b", "c", "d"));
+                testMap.put("b", Arrays.asList("e", "x/f"));
+                testMap.put("c", Arrays.asList("e", "x/f"));
+                testMap.put("e", new ArrayList<String>());
+                testMap.put("x/f", new ArrayList<String>());
+                testMap.put("d", new ArrayList<String>());
+                DependenceTreeNode rs = createDependenceTree(testMap, "a");
+                String rss = calculateJSString(rs);
+                //rss = calculateJSString(rs);
+
+                int x = rss.lastIndexOf(';');
+                System.out.println(rss.substring(0, x));
+                System.out.println(rss.substring(x, rss.length()));
+                // System.out.println("rss = " + rss);
+                return "";
+            }
+        };
+
+        tester.execute("", "");
     }
 }
