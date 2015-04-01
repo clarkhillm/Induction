@@ -12,9 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.MessageFormat;
+import java.util.*;
 
 /**
  * @author gavin.
@@ -27,9 +26,6 @@ public abstract class Base {
 
     protected Logger log = Logger.getLogger(this.getClass());
 
-    private String key;
-    private String prefix = "__$";
-
     private JdbcTemplate template;
 
     private Map<String, ScriptEngine> engineMap = new HashMap<String, ScriptEngine>();
@@ -39,8 +35,16 @@ public abstract class Base {
         this.template = template;
     }
 
+    private Set<String> modules = new HashSet<String>();
+
+    /**
+     * 加载Base.js以及lib。
+     * 为Base注入数据。
+     * 需要注意的是lib是以全局的方式加载的。
+     *
+     * @param key js的名称。
+     */
     protected void init(String key) {
-        this.key = key;
         E = engineMap.get(key);
         if (E == null) {
             ScriptEngineManager manager = new ScriptEngineManager();
@@ -48,25 +52,33 @@ public abstract class Base {
             try {
                 loadLibs();
                 engineMap.put(key, E);
+                loadBaseJS("Base");
+                E.put("_$log", log);
+                E.put("_$jdbcTemplate", template);
+                E.put("_$tool", new Tool());
+                E.put("_$fileName", key + ".js");
             } catch (ScriptException e) {
                 e.printStackTrace();
                 log.error(e);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
             }
         }
     }
 
     protected void loadJS(String key) {
         try {
+            if (!modules.contains(key)) {
+                loadExecutorJS(key);
+                modules.add(key.replaceAll("/", "."));
+                String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())").toString();
+                log.debug("typeof " + key + " " + typeOfJS);
 
-            loadBaseJS("Base");
-            loadExecutorJS(key);
-
-            E.put("_$log", log);
-            E.put("_$jdbcTemplate", template);
-            E.put("_$tool", new Tool());
-            E.put("_$fileName", key + ".js");
-
-            E.eval("var " + prefix + key + " = induction." + key + ".call(induction.Base);");
+                if (!"function".equals(typeOfJS)) {
+                    String moduleString = E.eval("(function(){return JSON.stringify(_.initial(induction." + key + "))}())").toString();
+                    log.debug(MessageFormat.format("moduleString is {0}", moduleString));
+                }
+            }
         } catch (ScriptException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
@@ -85,13 +97,13 @@ public abstract class Base {
         }
     }
 
-    private void loadBaseJS(String basejs) throws URISyntaxException, ScriptException {
-        String modifyTime = loadedJS.get(basejs);
+    private void loadBaseJS(String baseJs) throws URISyntaxException, ScriptException {
+        String modifyTime = loadedJS.get(baseJs);
         String lastModifyTime = new File(this.getClass().getResource("/js/Base.js").toURI()).lastModified() + "";
         if (modifyTime != null && !modifyTime.equals(lastModifyTime)) {
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/Base.js")));
         } else {
-            loadedJS.put(basejs, lastModifyTime);
+            loadedJS.put(baseJs, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/Base.js")));
         }
     }
@@ -101,12 +113,10 @@ public abstract class Base {
         E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/lib/underscore-min.js")));
     }
 
-    protected String executeMethod(String functionName) {
+    protected String executeMethod(String key, String functionName) {
         try {
-            String evalString = "var " + prefix + key + "_result = JSON.stringify(" + prefix + key + "." + functionName + ");";
-            log.debug(evalString);
-            E.eval(evalString);
-            return E.get(prefix + key + "_result").toString();
+            log.debug(MessageFormat.format("xxxx {0}", modules));
+            return E.eval("(function($){return JSON.stringify(induction." + key + "($)." + functionName + ");}(induction.Base))").toString();
         } catch (ScriptException e) {
             e.printStackTrace();
         }
