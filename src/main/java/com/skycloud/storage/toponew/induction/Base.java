@@ -67,23 +67,36 @@ public abstract class Base {
     }
 
     protected void loadJS(String key) {
+        log.debug(MessageFormat.format("load js : /js/execute/{0}.js", key));
         try {
             if (!modules.contains(key)) {
                 loadExecutorJS(key);
                 modules.add(key.replaceAll("/", "."));
+
                 String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())").toString();
                 log.debug("typeof " + key + " " + typeOfJS);
 
                 if (!"function".equals(typeOfJS)) {
-                    String moduleString = E.eval("(function(){return JSON.stringify(_.initial(induction." + key + "))}())").toString();
-                    log.debug(MessageFormat.format("moduleString is {0}", moduleString));
+                    List<String> dependence = getModuleDependence(key);
+                    log.debug(MessageFormat.format("dependence of this module (induction.{0}) are {1}", key, dependence));
+                    for (String s : dependence) {
+                        loadJS(s);
+                    }
                 }
+            } else {
+                log.debug("load failed. Some other js has the same name has been loaded.");
             }
-        } catch (ScriptException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.error(e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> getModuleDependence(String key) throws ScriptException, IOException {
+        String moduleString = E.eval("(function(){return JSON.stringify(_.initial(induction." + key + "))}())").toString();
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(moduleString, List.class);
     }
 
     private void loadExecutorJS(String key) throws URISyntaxException, ScriptException {
@@ -115,15 +128,48 @@ public abstract class Base {
 
     protected String executeMethod(String key, String functionName) {
         try {
-            log.debug(MessageFormat.format("xxxx {0}", modules));
-            return E.eval("(function($){return JSON.stringify(induction." + key + "($)." + functionName + ");}(induction.Base))").toString();
+            String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())").toString();
+            if ("function".equals(typeOfJS)) {
+                return E.eval("(function($){return JSON.stringify(induction." + key + "($)." + functionName + ");}(induction.Base))").toString();
+            } else {
+                List<DependenceModel> ds = new ArrayList<DependenceModel>();
+                Map<String, List<String>> dsMap = new HashMap<String, List<String>>();
+
+                for (String module : modules) {
+                    List<String> dependence = getModuleDependence(module);
+                    if (dependence.contains(module)) {
+                        throw new Exception(MessageFormat.format("can not dependence self.({0})", key));
+                    }
+                    ds.add(new DependenceModel(module, dependence));
+                    dsMap.put(module, dependence);
+                }
+
+                for (DependenceModel d : ds) {
+                    for (String name : d.dependence) {
+                        if (dsMap.get(name).contains(d.name)) {
+                            throw new Exception(MessageFormat.format("There is a circular dependency. ({0}-{1})", name, d.name));
+                        }
+                    }
+                }
+
+
+            }
         } catch (ScriptException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return "[]";
+        return "{\"rs\":\"It seems some error occur,please check log.\"}";
+    }
+
+    private String genDependenceString(String key, String dependence) {
+        return MessageFormat.format("(function($){return induction.{0}($,{1})}(induction.Base)", key.replaceAll("/", "."), dependence);
     }
 
     protected Object toJSONObject(String json) {
+        log.debug(MessageFormat.format("returned json string is {0}", json));
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue(json, Object.class);
@@ -146,5 +192,21 @@ public abstract class Base {
             }
             return writer.toString();
         }
+    }
+
+    private static class DependenceModel {
+        public final String name;
+        public final List<String> dependence;
+
+        private DependenceModel(String name, List<String> dependence) {
+            this.name = name;
+            this.dependence = dependence;
+        }
+    }
+
+    private static class DependenceTreeNode {
+        public String name;
+        public List<DependenceTreeNode> nodes = new ArrayList<DependenceTreeNode>();
+        public String JSString = "";
     }
 }

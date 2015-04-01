@@ -13,6 +13,7 @@
         <spring-version>3.0.6.RELEASE</spring-version>
         <xstream-version>1.4.2</xstream-version>
         <dom4j-version>1.6.1</dom4j-version>
+        <guava-version>18.0</guava-version>
     </properties>
     <dependencies>
         <dependency>
@@ -97,6 +98,12 @@
             <groupId>com.thoughtworks.xstream</groupId>
             <artifactId>xstream</artifactId>
             <version>${xstream-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava-version}</version>
         </dependency>
 
     </dependencies>
