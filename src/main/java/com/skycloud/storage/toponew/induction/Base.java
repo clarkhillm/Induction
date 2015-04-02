@@ -72,9 +72,9 @@ public abstract class Base {
         try {
             if (!modules.contains(key)) {
                 loadExecutorJS(key);
-                modules.add(key.replaceAll("/", "."));
+                modules.add(accordName(key));
 
-                String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())").toString();
+                String typeOfJS = E.eval("(function(){return typeof induction." + accordName(key) + ";}())").toString();
                 log.debug("typeof " + key + " " + typeOfJS);
 
                 if (!"function".equals(typeOfJS)) {
@@ -107,7 +107,13 @@ public abstract class Base {
         key = key.replaceAll("/", ".");
         String moduleString = E.eval("(function(){return JSON.stringify(_.initial(induction." + key + "))}())").toString();
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(moduleString, List.class);
+        List<String> rs = mapper.readValue(moduleString, List.class);
+        log.debug(MessageFormat.format("dependence {0}-{1}", key, rs));
+        if (rs == null) {
+            return new ArrayList<String>();
+        } else {
+            return rs;
+        }
     }
 
     private void loadExecutorJS(String key) throws URISyntaxException, ScriptException {
@@ -147,6 +153,8 @@ public abstract class Base {
                 List<DependenceModel> ds = new ArrayList<DependenceModel>();
                 Map<String, List<String>> dsMap = new HashMap<String, List<String>>();
 
+                log.debug(MessageFormat.format("dependence modules list is {0}", modules));
+
                 for (String module : modules) {
                     List<String> dependence = getModuleDependence(module);
                     if (dependence.contains(module)) {
@@ -156,9 +164,11 @@ public abstract class Base {
                     dsMap.put(module, dependence);
                 }
 
+                log.debug(MessageFormat.format("dsMap:{0}", dsMap));
+
                 for (DependenceModel d : ds) {
                     for (String name : d.dependence) {
-                        if (dsMap.get(name).contains(d.name)) {
+                        if (dsMap.get(accordName(name)).contains(accordName(d.name))) {
                             throw new Exception(MessageFormat.format("There is a circular dependency. ({0}-{1})", name, d.name));
                         }
                     }
@@ -192,6 +202,7 @@ public abstract class Base {
     }
 
     protected DependenceTreeNode createDependenceTree(Map<String, List<String>> input, String key) {
+        key = accordName(key);
         DependenceTreeNode node = new DependenceTreeNode();
         node.name = key;
         for (String nk : input.get(key)) {
@@ -218,10 +229,21 @@ public abstract class Base {
             dot = ",";
         }
         if (flag) {
-            return "(function($){return induction." + key.replaceAll("/", ".") + "($" + dot + dependence + ");})(induction.Base('" + key + "'))";
+            return "(function($){return induction." + accordName(key) + "($" + dot + dependence + ");})(induction.Base('" + key + "'))";
         } else {
-            return "(function($){return _.last(induction." + key.replaceAll("/", ".") + ")($" + dot + dependence + ");})(induction.Base('" + key + "'))";
+            return "(function($){return _.last(induction." + accordName(key) + ")($" + dot + dependence + ");})(induction.Base('" + key + "'))";
         }
+    }
+
+    /**
+     * 使key的值一致，此方法应该是无害的，因为原始的值只有在加载时才是有效的。
+     * 因此，在其他的地方为了保险起见，我们统一都做一致性的处理，我想这样应该是OK的。
+     *
+     * @param key 模块的名称
+     * @return 一致的模块名称
+     */
+    private String accordName(String key) {
+        return key.replaceAll("/", ".");
     }
 
     protected Object toJSONObject(String json) {
