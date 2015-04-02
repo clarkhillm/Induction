@@ -2,8 +2,7 @@
  *
  * Created by gavin on 3/31/15.
  */
-induction.generateRelationsTask = function () {
-    var $ = this;
+induction.generateRelationsTask = function ($) {
 
     var switchSQL = 'SELECT A.ID,A.IP,A.NAME,B.WWN ' +
         'FROM STOR_SYSTEM A ,SWITCH B WHERE A.ID=B.ID';

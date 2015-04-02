@@ -283,13 +283,6 @@ public abstract class Base {
         public String name;
         public List<DependenceTreeNode> nodes = new ArrayList<DependenceTreeNode>();
         public String JSString = "";
-
-        @Override
-        public String toString() {
-            return "DependenceTreeNode{" +
-                    "name='" + name + '\'' +
-                    '}';
-        }
     }
 
     protected void cleanModules() {

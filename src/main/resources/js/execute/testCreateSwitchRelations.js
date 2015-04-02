@@ -2,8 +2,7 @@
  * 创建以交换机为中心的关系表。
  * Created by gavin on 3/31/15.
  */
-induction.testCreateSwitchRelations = function () {
-    var $ = this;
+induction.testCreateSwitchRelations = function ($) {
 
     var sql = "CREATE TABLE sys_relation_switch\n" +
         "(\n" +

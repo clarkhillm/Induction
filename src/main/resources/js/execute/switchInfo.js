@@ -1,5 +1,4 @@
-induction.switchInfo = function () {
-    var $ = this;
+induction.switchInfo = function ($) {
 
     var sql = "SELECT A.ID,A.SYS_ID,A.WWN,B.ID,B.NAME,B.IP " +
         "FROM SWITCH A, STOR_SYSTEM B " +

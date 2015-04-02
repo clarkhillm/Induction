@@ -3,8 +3,7 @@
  * Created by gavin on 15-3-25.
  */
 
-induction.storageLinkInfo = function () {
-    var $ = this;
+induction.storageLinkInfo = function ($) {
 
     var storagePortSQL = 'SELECT '
         + ' A.ID,'

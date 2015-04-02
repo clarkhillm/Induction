@@ -1,9 +1,9 @@
 /**
+ *
  * Created by gavin on 2015/3/20.
  */
 
-induction.switchLinkInfo = function () {
-    var $ = this;
+induction.switchLinkInfo = function ($) {
 
     var switchSQL = 'SELECT A.ID,A.IP,A.NAME,B.WWN ' +
         'FROM STOR_SYSTEM A ,SWITCH B WHERE A.ID=B.ID AND (@C)';
