@@ -58,7 +58,6 @@ public abstract class Base {
                 E.put("_$log", log);
                 E.put("_$jdbcTemplate", template);
                 E.put("_$tool", new Tool());
-                E.put("_$fileName", key + ".js");
             } catch (ScriptException e) {
                 e.printStackTrace();
                 log.error(e);
@@ -142,7 +141,8 @@ public abstract class Base {
         try {
             String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())").toString();
             if ("function".equals(typeOfJS)) {
-                return E.eval("(function($){return JSON.stringify(induction." + key + "($)." + functionName + ");}(induction.Base))").toString();
+                return E.eval("(function($){return JSON.stringify(induction." + key + "($)." +
+                        functionName + ");}(induction.Base('" + key + "')))").toString();
             } else {
                 List<DependenceModel> ds = new ArrayList<DependenceModel>();
                 Map<String, List<String>> dsMap = new HashMap<String, List<String>>();
@@ -218,9 +218,9 @@ public abstract class Base {
             dot = ",";
         }
         if (flag) {
-            return "(function($){return induction." + key.replaceAll("/", ".") + "($" + dot + dependence + ");})(induction.Base)";
+            return "(function($){return induction." + key.replaceAll("/", ".") + "($" + dot + dependence + ");})(induction.Base('" + key + "'))";
         } else {
-            return "(function($){return _.last(induction." + key.replaceAll("/", ".") + ")($" + dot + dependence + ");})(induction.Base)";
+            return "(function($){return _.last(induction." + key.replaceAll("/", ".") + ")($" + dot + dependence + ");})(induction.Base('" + key + "'))";
         }
     }
 

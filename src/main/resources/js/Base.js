@@ -10,7 +10,6 @@ var javaInteger = java.lang.Integer;
 var UUID = java.util.UUID;
 
 var _$log;
-var _$fileName;
 var _$jdbcTemplate;
 var _$tool;
 
@@ -40,7 +39,7 @@ var $JavaIntArray = function () {
     return a;
 };
 
-induction.Base = (function () {
+induction.Base = function (fileName) {
     return {
         /**
          * 处理参数,排除错误的情况。
@@ -61,13 +60,12 @@ induction.Base = (function () {
         },
         start: function (pageNum, rows) {
             return $JavaIntArray((pageNum - 1) * rows, rows);
-        }
-        ,
+        },
         log: function (message, level) {
             if (!level) {
                 level = 'debug';
             }
-            _$log[level](' -- ' + _$fileName + ' -- ' + message);
+            _$log[level](' -- ' + fileName + '.js -- ' + message);
         }
     }
-}());
+};

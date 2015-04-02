@@ -5,6 +5,7 @@
 induction.Tool = function ($) {
     return {
         test: function () {
+            $.log('xxxxxxxxxxxxxx');
             return 'test ..xxxxx';
         }
     }
