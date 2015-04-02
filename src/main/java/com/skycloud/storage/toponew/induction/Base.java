@@ -22,20 +22,22 @@ import java.util.*;
  */
 public abstract class Base {
 
+    private static final String BASE_JS_PATH = "/js";
+    private static final String EXECUTE_JS_PATH = "/execute";
+
     protected ScriptEngine E;
 
     protected Logger log = Logger.getLogger(this.getClass());
-
-    private JdbcTemplate template;
-
     private Map<String, ScriptEngine> engineMap = new HashMap<String, ScriptEngine>();
     private Map<String, String> loadedJS = new HashMap<String, String>();
+    private Set<String> modules = new HashSet<String>();
+
+    private JdbcTemplate template;
 
     public void setTemplate(JdbcTemplate template) {
         this.template = template;
     }
 
-    private Set<String> modules = new HashSet<String>();
 
     /**
      * 加载Base.js以及lib。
@@ -67,7 +69,7 @@ public abstract class Base {
     }
 
     protected void loadJS(String key) {
-        log.debug(MessageFormat.format("load js : /js/execute/{0}.js", key));
+        log.debug(MessageFormat.format("load js : " + BASE_JS_PATH + EXECUTE_JS_PATH + "/{0}.js", key));
         try {
             if (!modules.contains(key)) {
                 loadExecutorJS(key);
@@ -92,8 +94,18 @@ public abstract class Base {
         }
     }
 
+    /**
+     * 获取模块的类型，模块可能的类型有function以及object（数组）。
+     * 根据约定，如果是数组，则其内容必为字符串。
+     *
+     * @param key 模块的名称
+     * @return 包含模块名称的java List
+     * @throws ScriptException
+     * @throws IOException
+     */
     @SuppressWarnings("unchecked")
     private List<String> getModuleDependence(String key) throws ScriptException, IOException {
+        key = key.replaceAll("/", ".");
         String moduleString = E.eval("(function(){return JSON.stringify(_.initial(induction." + key + "))}())").toString();
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(moduleString, List.class);
@@ -101,29 +113,29 @@ public abstract class Base {
 
     private void loadExecutorJS(String key) throws URISyntaxException, ScriptException {
         String modifyTime = loadedJS.get(key);
-        String lastModifyTime = new File(this.getClass().getResource("/js/execute/" + key + ".js").toURI()).lastModified() + "";
+        String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
         if (modifyTime != null && !modifyTime.equals(lastModifyTime)) {
-            E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/execute/" + key + ".js")));
+            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
         } else {
             loadedJS.put(key, lastModifyTime);
-            E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/execute/" + key + ".js")));
+            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
         }
     }
 
     private void loadBaseJS(String baseJs) throws URISyntaxException, ScriptException {
         String modifyTime = loadedJS.get(baseJs);
-        String lastModifyTime = new File(this.getClass().getResource("/js/Base.js").toURI()).lastModified() + "";
+        String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + "/Base.js").toURI()).lastModified() + "";
         if (modifyTime != null && !modifyTime.equals(lastModifyTime)) {
-            E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/Base.js")));
+            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/Base.js")));
         } else {
             loadedJS.put(baseJs, lastModifyTime);
-            E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/Base.js")));
+            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/Base.js")));
         }
     }
 
     private void loadLibs() throws ScriptException {
-        E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/lib/json2.js")));
-        E.eval(new InputStreamReader(this.getClass().getResourceAsStream("/js/lib/underscore-min.js")));
+        E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/lib/json2.js")));
+        E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/lib/underscore-min.js")));
     }
 
     protected String executeMethod(String key, String functionName) {
@@ -154,16 +166,18 @@ public abstract class Base {
 
                 DependenceTreeNode node = createDependenceTree(dsMap, key);
                 String js = calculateJSString(node);
-                int x = js.lastIndexOf(';');
+                log.debug(js);
 
-                String f = js.substring(0, x);
-                int xx = js.indexOf('_');
-                String f0 = f.substring(0, xx);
-                String f1 = f.substring(xx, f.length());
+                int indexOfMethod = js.lastIndexOf(';');//方法添加的位置
 
+                String f = js.substring(0, indexOfMethod);
+                //增加json序列化的位置。必须返回一个字符串，否则java处理起来比较困难。
+                int JSONStringifyPosition = js.indexOf('_');
+                String f0 = f.substring(0, JSONStringifyPosition);
+                String f1 = f.substring(JSONStringifyPosition, f.length());
                 f = f0 + "JSON.stringify(" + f1;
 
-                String e = js.substring(x, js.length());
+                String e = js.substring(indexOfMethod, js.length());
                 log.debug(f + "." + functionName + ")" + e);
                 return E.eval(f + "." + functionName + ")" + e).toString();
             }
@@ -178,7 +192,6 @@ public abstract class Base {
     }
 
     protected DependenceTreeNode createDependenceTree(Map<String, List<String>> input, String key) {
-        System.out.println("key = " + key);
         DependenceTreeNode node = new DependenceTreeNode();
         node.name = key;
         for (String nk : input.get(key)) {
@@ -222,9 +235,28 @@ public abstract class Base {
         }
     }
 
-    public abstract Object execute(String key, String parameters);
+    public abstract Object setParametersAndCall(String key, String parameters);
 
+    public Object execute(String key, String parameters) {
+        init(key);
+        loadJS(key);
+        Object rs = setParametersAndCall(key, parameters);
+        cleanModules();
+        return rs;
+    }
+
+    /**
+     * 这个类是为了给JS提供一些处理Java结果的工具。
+     * 其中的方法会在JS中使用。因此编译器可能会报unused的警告，可以乎略。
+     */
     public static class Tool {
+        /**
+         * 这个工具是为了jdbcTemplate的查询结果，需要被转换成JSON字符串，以便JS处理。
+         *
+         * @param result 某个java对象。这里应该是jdbcTemplate的查询结果，是一个java的map对象。
+         * @return JSON string
+         */
+        @SuppressWarnings("unused")
         public String toJSON(List result) {
             ObjectMapper mapper = new ObjectMapper();
             StringWriter writer = new StringWriter();
@@ -262,31 +294,5 @@ public abstract class Base {
 
     protected void cleanModules() {
         modules.clear();
-    }
-
-    public static void main(String[] args) {
-        Base tester = new Base() {
-            @Override
-            public Object execute(String key, String parameters) {
-                Map<String, List<String>> testMap = new HashMap<String, List<String>>();
-                testMap.put("a", Arrays.asList("b", "c", "d"));
-                testMap.put("b", Arrays.asList("e", "x/f"));
-                testMap.put("c", Arrays.asList("e", "x/f"));
-                testMap.put("e", new ArrayList<String>());
-                testMap.put("x/f", new ArrayList<String>());
-                testMap.put("d", new ArrayList<String>());
-                DependenceTreeNode rs = createDependenceTree(testMap, "a");
-                String rss = calculateJSString(rs);
-                //rss = calculateJSString(rs);
-
-                int x = rss.lastIndexOf(';');
-                System.out.println(rss.substring(0, x));
-                System.out.println(rss.substring(x, rss.length()));
-                // System.out.println("rss = " + rss);
-                return "";
-            }
-        };
-
-        tester.execute("", "");
     }
 }

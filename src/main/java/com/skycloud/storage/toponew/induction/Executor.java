@@ -6,11 +6,7 @@ package com.skycloud.storage.toponew.induction;
  */
 public class Executor extends Base {
     @Override
-    public Object execute(String key, String parameters) {
-        init(key);
-        loadJS(key);
-        Object xx = toJSONObject(executeMethod(key, "execute(" + parameters + ")"));
-        cleanModules();
-        return xx;
+    public Object setParametersAndCall(String key, String parameters) {
+        return toJSONObject(executeMethod(key, "execute(" + parameters + ")"));
     }
 }
