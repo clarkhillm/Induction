@@ -53,17 +53,25 @@ public abstract class Base {
             E = manager.getEngineByName("JavaScript");
             try {
                 loadLibs();
+                loadBaseJS();
                 engineMap.put(key, E);
-                loadBaseJS("Base");
-                E.put("_$log", log);
-                E.put("_$jdbcTemplate", template);
-                E.put("_$tool", new Tool());
             } catch (ScriptException e) {
                 e.printStackTrace();
                 log.error(e);
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
             }
+        }
+    }
+
+    private void loadBaseJS() {
+        try {
+            loadBaseJS("Base");
+            E.put("_$log", log);
+            E.put("_$jdbcTemplate", template);
+            E.put("_$tool", new Tool());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (ScriptException e) {
+            e.printStackTrace();
         }
     }
 
@@ -116,12 +124,21 @@ public abstract class Base {
         }
     }
 
+    private void calculateNameSpace(String key) {
+        try {
+            E.eval("(function(){return JSON.stringify(induction.calculateTool().calculateNameSpace('" + key + "'))}())");
+        } catch (ScriptException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void loadExecutorJS(String key) throws URISyntaxException, ScriptException {
+        log.debug(MessageFormat.format("load js time .. {0}", loadedJS));
+        calculateNameSpace(key);
         String modifyTime = loadedJS.get(key);
         String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
-        if (modifyTime != null && !modifyTime.equals(lastModifyTime)) {
-            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
-        } else {
+        if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
+            log.debug("load " + key + ".js for new modify.");
             loadedJS.put(key, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
         }
@@ -130,9 +147,8 @@ public abstract class Base {
     private void loadBaseJS(String baseJs) throws URISyntaxException, ScriptException {
         String modifyTime = loadedJS.get(baseJs);
         String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + "/Base.js").toURI()).lastModified() + "";
-        if (modifyTime != null && !modifyTime.equals(lastModifyTime)) {
-            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/Base.js")));
-        } else {
+        if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
+            log.debug("load Base.js for new modify.");
             loadedJS.put(baseJs, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/Base.js")));
         }
