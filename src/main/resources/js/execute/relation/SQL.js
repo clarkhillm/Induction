@@ -2,7 +2,6 @@
  *
  * Created by gavin on 4/2/15.
  */
-induction.relation = {};
 induction.relation.SQL = function ($) {
     return {
         switchSQL: 'SELECT A.ID,A.IP,A.NAME,B.WWN ' +

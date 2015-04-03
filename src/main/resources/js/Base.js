@@ -54,8 +54,8 @@ induction.calculateTool = function () {
             var rs = "";
             var index = name.indexOf('/');
             if (index > 0) {
-                name = '/' + name;
                 var factors = _.initial(name.split(/\//));
+                factors.push('');
                 _$log.debug($mf('--Base.js-- CALCULATE name space factor : {0}', JSON.stringify(factors)));
                 _.reduce(factors, function (f1, f2) {
                     rs = rs + 'induction.' + f1 + '= induction.' + f1 + '||{};';

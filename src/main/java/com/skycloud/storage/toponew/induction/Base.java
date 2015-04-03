@@ -124,9 +124,20 @@ public abstract class Base {
         }
     }
 
+    /**
+     * 为复杂具有复杂命名空间的模块自动的加载命名空间声明。
+     * 复杂命名空间是因为被依赖的模块在文件夹中。
+     *
+     * 计算是在JS中完成的。
+     *
+     * @param key 模块的名称
+     */
     private void calculateNameSpace(String key) {
         try {
-            E.eval("(function(){return JSON.stringify(induction.calculateTool().calculateNameSpace('" + key + "'))}())");
+            String nameSpaceString = E.eval("(function(){return JSON.stringify(induction.calculateTool().calculateNameSpace('"
+                    + key + "'))}())").toString();
+            log.debug("namespace sting : " + nameSpaceString);
+            E.eval(nameSpaceString.replaceAll("\"", ""));
         } catch (ScriptException e) {
             e.printStackTrace();
         }
