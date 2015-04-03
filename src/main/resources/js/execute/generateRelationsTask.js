@@ -5,6 +5,7 @@
 induction.generateRelationsTask = [
     'relation/SQL',
     'relation/switchLinkInfo',
+    'relation/switchTableInfo',
     function ($, sql, switchLinkInfo) {
         return {
             execute: function () {
@@ -64,6 +65,7 @@ induction.generateRelationsTask = [
                 //return hosts;
 
                 switchLinkInfo.calculate(switches, storages, hosts);
+
 
                 return {rs: 'success'};
             }
