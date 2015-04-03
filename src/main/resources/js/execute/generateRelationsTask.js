@@ -7,14 +7,6 @@ induction.generateRelationsTask = [
     'relation/switchLinkInfo',
     function ($, sql, switchLinkInfo) {
         return {
-            updateLinkInfo: function (linkInfoTableName, linkInfo, values) {
-                _$jdbcTemplate.update('DELETE FROM ' + linkInfoTableName);
-                _.each(linkInfo, function (info) {
-                    _$jdbcTemplate.update('INSERT INTO ' + linkInfoTableName +
-                        '(UUID,IP,VALUE,STORAGE,SWITCH,HOST)VALUES(?,?,?,?,?,?)', values(info)
-                    );
-                });
-            },
             execute: function () {
 
                 $.log(sql.switchSQL);
@@ -71,21 +63,9 @@ induction.generateRelationsTask = [
                 var hosts = $queryForList(sql.physicalSQL);
                 //return hosts;
 
-                this.updateLinkInfo('SYS_RELATION_SWITCH',
-                    switchLinkInfo.calculate(switches, storages, hosts),
-                    function (s) {
-                        return [
-                            s.uuid,
-                            s.ip,
-                            JSON.stringify({ip: s.switchIP, WWN: s.WWN}),
-                            JSON.stringify(s.linkstor),
-                            JSON.stringify(s.linkswitch),
-                            JSON.stringify(s.linkhost)
-                        ];
-                    });
+                switchLinkInfo.calculate(switches, storages, hosts);
 
                 return {rs: 'success'};
             }
         }
     }];
-
