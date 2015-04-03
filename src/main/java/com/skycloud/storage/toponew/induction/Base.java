@@ -84,8 +84,14 @@ public abstract class Base {
                 loadExecutorJS(key);
                 modules.add(accordName(key));
 
-                String typeOfJS = E.eval("(function(){return typeof induction." + accordName(key) + ";}())").toString();
+                String calculateString = "(function(){return typeof induction." + accordName(key) + ";}())";
+                log.debug(calculateString);
+                String typeOfJS = E.eval(calculateString).toString();
                 log.debug("typeof " + key + " " + typeOfJS);
+
+                if (typeOfJS.equals("undefined")) {
+                    throw new Exception("未找到模块：induction." + accordName(key) + ",请检查" + key + ".js文件中模块命名是否正确。");
+                }
 
                 if (!"function".equals(typeOfJS)) {
                     List<String> dependence = getModuleDependence(key);
@@ -155,7 +161,7 @@ public abstract class Base {
         String modifyTime = loadedJS.get(putKey);
         String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
-            log.debug("load " + key + ".js for new modify.");
+            log.debug("load " + key + ".js for new modify." + " _ " + engineKey);
             loadedJS.put(putKey, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
         }
