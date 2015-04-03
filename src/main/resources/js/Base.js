@@ -4,7 +4,6 @@
  * 2.凡是全局对象包括方法，以$开头。
  * 3.凡是调用java对象中的方法，不要用apply或者call，Nashorn引擎不支持这种调用。
  *
- * 注意：这个JS是不能动态的加载的。因为这里面有一些和java的交互，和很多的全局变量。
  */
 var javaArray = java.lang.reflect.Array;
 var mf = java.text.MessageFormat.format;

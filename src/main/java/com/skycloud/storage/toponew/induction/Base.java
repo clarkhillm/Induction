@@ -31,6 +31,7 @@ public abstract class Base {
     private Map<String, ScriptEngine> engineMap = new HashMap<String, ScriptEngine>();
     private Map<String, String> loadedJS = new HashMap<String, String>();
     private Set<String> modules = new HashSet<String>();
+    private String engineKey = "";
 
     private JdbcTemplate template;
 
@@ -47,24 +48,25 @@ public abstract class Base {
      * @param key js的名称。
      */
     protected void init(String key) {
+        engineKey = key;
         E = engineMap.get(key);
         if (E == null) {
             ScriptEngineManager manager = new ScriptEngineManager();
             E = manager.getEngineByName("JavaScript");
             try {
                 loadLibs();
-                loadBaseJS();
                 engineMap.put(key, E);
             } catch (ScriptException e) {
                 e.printStackTrace();
                 log.error(e);
             }
         }
+        log.debug("engine map : " + engineMap);
     }
 
-    private void loadBaseJS() {
+    private void loadBaseJS(String key) {
         try {
-            loadBaseJS("Base");
+            loadBase("Base" + "_" + key);
             E.put("_$log", log);
             E.put("_$jdbcTemplate", template);
             E.put("_$tool", new Tool());
@@ -127,7 +129,7 @@ public abstract class Base {
     /**
      * 为复杂具有复杂命名空间的模块自动的加载命名空间声明。
      * 复杂命名空间是因为被依赖的模块在文件夹中。
-     *
+     * <p/>
      * 计算是在JS中完成的。
      *
      * @param key 模块的名称
@@ -144,18 +146,22 @@ public abstract class Base {
     }
 
     private void loadExecutorJS(String key) throws URISyntaxException, ScriptException {
+        String putKey = key;
+        if (!putKey.equals(engineKey)) {
+            putKey = putKey + "_" + engineKey;
+        }
         log.debug(MessageFormat.format("load js time .. {0}", loadedJS));
         calculateNameSpace(key);
-        String modifyTime = loadedJS.get(key);
+        String modifyTime = loadedJS.get(putKey);
         String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
             log.debug("load " + key + ".js for new modify.");
-            loadedJS.put(key, lastModifyTime);
+            loadedJS.put(putKey, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
         }
     }
 
-    private void loadBaseJS(String baseJs) throws URISyntaxException, ScriptException {
+    private void loadBase(String baseJs) throws URISyntaxException, ScriptException {
         String modifyTime = loadedJS.get(baseJs);
         String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + "/Base.js").toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
@@ -288,6 +294,7 @@ public abstract class Base {
 
     public Object execute(String key, String parameters) {
         init(key);
+        loadBaseJS(key);
         loadJS(key);
         Object rs = setParametersAndCall(key, parameters);
         cleanModules();
