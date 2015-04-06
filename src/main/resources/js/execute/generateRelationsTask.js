@@ -5,8 +5,8 @@
 induction.generateRelationsTask = [
     'relation/SQL',
     'relation/switchLinkInfo',
-    'relation/switchTableInfo',
-    function ($, sql, switchLinkInfo) {
+    'relation/storageLinkInfo',
+    function ($, sql, switchLink, storageLink) {
         return {
             execute: function () {
 
@@ -64,8 +64,8 @@ induction.generateRelationsTask = [
                 var hosts = $queryForList(sql.physicalSQL);
                 //return hosts;
 
-                switchLinkInfo.calculate(switches, storages, hosts);
-
+                //switchLink.calculate(switches, storages, hosts);
+                return storageLink.calculate(switches, storages, hosts);
 
                 return {rs: 'success'};
             }

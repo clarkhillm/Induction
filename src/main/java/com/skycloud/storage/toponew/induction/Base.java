@@ -217,7 +217,7 @@ public abstract class Base {
                 String js = calculateJSString(node);
                 log.debug(js);
 
-                int indexOfMethod = js.lastIndexOf(';');//方法添加的位置
+                int indexOfMethod = js.lastIndexOf(';');//寻找方法添加的位置
 
                 String f = js.substring(0, indexOfMethod);
                 //增加json序列化的位置。必须返回一个字符串，否则java处理起来比较困难。
