@@ -2,8 +2,7 @@
  * Created by gavin on 15-3-26.
  *
  */
-induction.hostInfo = function () {
-    var $ = this;
+induction.hostInfo = function ($) {
 
     var sql = 'SELECT IP ,NAME FROM SYS_PHYSICAL_HOST  WHERE {0} LIMIT ?,?';
 

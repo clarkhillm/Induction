@@ -3,8 +3,7 @@
  * 查询存储设备信息。
  */
 
-induction.storageInfo = function () {
-    var $ = this;
+induction.storageInfo = function ($) {
 
     var sql = 'SELECT ID,IP,NAME FROM STOR_SYSTEM WHERE TYPE=1 @condition LIMIT ?,?';
 

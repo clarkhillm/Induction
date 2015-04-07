@@ -2,8 +2,7 @@
  *
  * Created by gavin on 2015/3/24.
  */
-induction.testPhyHob = function () {
-    var $ = this;
+induction.testPhyHob = function ($) {
     return {
         execute: function (p) {
             var phyHost = $queryForList('select uuid from sys_physical_host');

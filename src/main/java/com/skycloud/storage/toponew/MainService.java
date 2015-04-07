@@ -31,7 +31,7 @@ public class MainService {
 
     @RequestMapping(value = "/{path}", method = RequestMethod.POST)
     public Object switchInfo(@PathVariable("path") String path, @RequestBody String json) {
-        log.debug(MessageFormat.format("request path is {0}", path));
+        log.debug(MessageFormat.format("request path is {0} ----------------------------------------", path));
         return executor.execute(path, json);
     }
 }

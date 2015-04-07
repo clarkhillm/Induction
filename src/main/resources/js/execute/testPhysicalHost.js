@@ -3,8 +3,7 @@
  * Created by gavin on 2015/3/24.
  */
 
-induction.testPhysicalHost = function () {
-    var $ = this;
+induction.testPhysicalHost = function ($) {
 
     var sql = 'INSERT INTO SYS_PHYSICAL_HOST (UUID,NAME,IP) VALUES(?,?,?)';
 
