@@ -6,7 +6,8 @@ induction.generateRelationsTask = [
     'relation/SQL',
     'relation/switchLinkInfo',
     'relation/storageLinkInfo',
-    function ($, sql, switchLink, storageLink) {
+    'relation/hostLinkInfo',
+    function ($, sql, switchLink, storageLink, hostLink) {
         return {
             execute: function () {
 
@@ -18,7 +19,7 @@ induction.generateRelationsTask = [
                     return {
                         id: s.ID,
                         ip: s.IP,
-                        name: s.NAME,
+                        name: s.NAME || '',
                         WWN: s.WWN.replace(/:/g, '').toLowerCase()
                     }
                 });
@@ -43,10 +44,10 @@ induction.generateRelationsTask = [
                         .map(function (sp) {
                             return {
                                 WWN: sp.WWN.replace(/:/g, '').toLowerCase(),
-                                slotID: sp.SLOT_ID,
-                                portID: sp.PORT_ID,
-                                name: sp.NAME,
-                                elementID: sp.ELEMENT_ID
+                                slotID: sp.SLOT_ID || '',
+                                portID: sp.PORT_ID || '',
+                                name: sp.NAME || '',
+                                elementID: sp.ELEMENT_ID || ''
                             }
                         }).value();
                     return s;
@@ -64,8 +65,9 @@ induction.generateRelationsTask = [
                 var hosts = $queryForList(sql.physicalSQL);
                 //return hosts;
 
-                //switchLink.calculate(switches, storages, hosts);
-                return storageLink.calculate(switches, storages, hosts);
+                switchLink.calculate(switches, storages, hosts);
+                storageLink.calculate(switches, storages, hosts);
+                hostLink.calculate(switches, storages, hosts);
 
                 return {rs: 'success'};
             }

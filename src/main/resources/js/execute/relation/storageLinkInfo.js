@@ -32,7 +32,6 @@ induction.relation.storageLinkInfo = [
                     rs.name = rss.NAME;
                     rs.uuid = rss.UUID;
 
-
                     rs.linkswitch = _.chain(rss.ports)
                         .map(function (sps) {
                             return _.chain(switches)
@@ -61,6 +60,7 @@ induction.relation.storageLinkInfo = [
                                     };
                                 }).value();
                         }).flatten().value();
+
                     return rs;
                 });
 
