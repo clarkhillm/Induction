@@ -7,4 +7,7 @@
           id="switchExecute">
         <property name="template" ref="storageCoreJdbcTemplate"/>
     </bean>
+    <bean class="com.skycloud.storage.toponew.task.generateRelationsTask" id="relation_task">
+        <property name="executor" ref="switchExecute"/>
+    </bean>
 </beans>
