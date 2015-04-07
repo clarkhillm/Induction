@@ -16,7 +16,7 @@ induction.relation.SQL = function ($) {
         'STOR_PORT A , STOR_SYSTEM B ' +
         'WHERE A.SYS_ID = B.ID AND A.PERMANENT_ADDRESS IS NOT NULL AND A.PERMANENT_ADDRESS !=\'\'',
 
-        physicalSQL: 'SELECT A.IP,A.UUID,A.NAME,B.WWN ' +
+        physicalSQL: 'SELECT A.IP,A.UUID,A.NAME,B.WWN ,B.NAME AS PORTNAME' +
         'FROM SYS_PHYSICAL_HOST A , SYS_PHYSICAL_HBA B' +
         ' WHERE A.UUID=B.HOST_UUID'
     }
