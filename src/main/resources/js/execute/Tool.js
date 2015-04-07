@@ -19,9 +19,7 @@ induction.Tool = function ($) {
             var ans=s1+":"+s2+":"+s3+":"+s4+":"+s5+":"+s6+":"+s7+":"+s8;
 
             return ans.toUpperCase();
-        test: function () {
-            $.log('xxxxxxxxxxxxxx');
-            return 'test ..xxxxx';
+
         }
     }
 };
