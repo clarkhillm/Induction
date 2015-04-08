@@ -32,7 +32,15 @@ public abstract class Base {
     private Map<String, ScriptEngine> engineMap = new HashMap<String, ScriptEngine>();
     private Map<String, String> loadedJS = new HashMap<String, String>();
     private Set<String> modules = new HashSet<String>();
-    private String engineKey = "";
+
+    /**
+     * 出于设计上的需要，我们必须保存这个全局变量，但是这个类是一个单例
+     * 会被多个线程共享，如果此变量被某线程修改则可能导致一些无法预料的
+     * 问题。
+     * <p/>
+     * 此变量作为引擎的一个标识，必须保证不会被多个线程在运行过程中改写。
+     */
+    private ThreadLocal<String> engineKEY = new ThreadLocal<String>();
 
     private JdbcTemplate template;
 
@@ -49,7 +57,7 @@ public abstract class Base {
      * @param key js的名称。
      */
     protected void init(String key) {
-        engineKey = key;
+        engineKEY.set(key);
         E = engineMap.get(key);
         if (E == null) {
             E = manager.getEngineByName("JavaScript");
@@ -152,15 +160,15 @@ public abstract class Base {
 
     private void loadExecutorJS(String key) throws URISyntaxException, ScriptException {
         String putKey = key;
-        if (!putKey.equals(engineKey)) {
-            putKey = putKey + "_" + engineKey;
+        if (!putKey.equals(engineKEY.get())) {
+            putKey = putKey + "_" + engineKEY.get();
         }
         log.debug(MessageFormat.format("load js time .. {0}", loadedJS));
         calculateNameSpace(key);
         String modifyTime = loadedJS.get(putKey);
         String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
-            log.debug("load " + key + ".js for new modify." + " _ " + engineKey);
+            log.debug("load " + key + ".js for new modify." + " _ " + engineKEY.get());
             loadedJS.put(putKey, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
         }
