@@ -55,7 +55,6 @@ public abstract class Base {
             E = manager.getEngineByName("JavaScript");
             try {
                 loadLibs();
-                engineMap.put(key, E);
             } catch (ScriptException e) {
                 e.printStackTrace();
                 log.error(e);
@@ -302,6 +301,7 @@ public abstract class Base {
         init(key);
         loadBaseJS(key);
         loadJS(key);
+        engineMap.put(key, E);//保证引擎已经把所有的JS加载完成。
         Object rs = setParametersAndCall(key, parameters);
         cleanModules();
         return rs;
