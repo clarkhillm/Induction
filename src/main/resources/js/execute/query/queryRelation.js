@@ -5,6 +5,7 @@
 induction.query.queryRelation = function ($) {
     return {
         query: function (sql, p, callback) {
+            $.log($mf('parameter : {0}', p));
             if (!(p && p.length > 0)) {
                 sql = sql.replace('@CONDITION', 'TRUE');
             } else {

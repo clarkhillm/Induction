@@ -87,9 +87,15 @@ induction.relation.switchLinkInfo = [
                         s.uuid,
                         s.ip,
                         JSON.stringify({ip: s.switchIP, WWN: s.WWN}),
-                        JSON.stringify(s.linkstor),
-                        JSON.stringify(s.linkswitch),
-                        JSON.stringify(s.linkhost)
+                        JSON.stringify(_.uniq(s.linkstor, function (x) {
+                            return x.storIp;
+                        })),
+                        JSON.stringify(_.uniq(s.linkswitch, function (x) {
+                            return x.switchIp;
+                        })),
+                        JSON.stringify(_.uniq(s.linkhost, function (x) {
+                            return x.hostIp;
+                        }))
                     ];
                 });
 

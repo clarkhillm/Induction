@@ -70,8 +70,10 @@ induction.relation.storageLinkInfo = [
                         s.ip,
                         JSON.stringify({ip: s.ip, name: s.name}),
                         '[]'
-                        , JSON.stringify(_.map(s.linkswitch, function (swth) {
+                        , JSON.stringify(_.uniq(_.map(s.linkswitch, function (swth) {
                             return {ip: swth.ip, name: swth.name}
+                        }), function (x) {
+                            return x.ip;
                         })),
                         '[]'
                     ];
