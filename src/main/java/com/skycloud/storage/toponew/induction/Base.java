@@ -25,6 +25,7 @@ public abstract class Base {
     private static final String BASE_JS_PATH = "/js";
     private static final String EXECUTE_JS_PATH = "/execute";
 
+    private ScriptEngineManager manager = new ScriptEngineManager();
     protected ScriptEngine E;
 
     protected Logger log = Logger.getLogger(this.getClass());
@@ -51,7 +52,6 @@ public abstract class Base {
         engineKey = key;
         E = engineMap.get(key);
         if (E == null) {
-            ScriptEngineManager manager = new ScriptEngineManager();
             E = manager.getEngineByName("JavaScript");
             try {
                 loadLibs();
