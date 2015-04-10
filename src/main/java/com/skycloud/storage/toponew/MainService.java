@@ -34,7 +34,7 @@ public class MainService {
     public Object switchInfo(@PathVariable("path") String path,
                              @RequestBody String json,
                              HttpServletResponse response) {
-        log.debug(MessageFormat.format("-- {0} -----{1}--------", path, json));
+        log.info(MessageFormat.format("-- {0} -----{1}--------", path, json));
         response.setHeader("Access-Control-Allow-Origin", "*");
         return executor.execute(path, json);
     }

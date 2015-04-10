@@ -74,7 +74,7 @@ public abstract class Base {
     }
 
     protected void loadJS(String key) throws Exception {
-        log.debug(MessageFormat.format("load js : " + BASE_JS_PATH + EXECUTE_JS_PATH + "/{0}.js", key));
+        log.info(MessageFormat.format("load js : " + BASE_JS_PATH + EXECUTE_JS_PATH + "/{0}.js", key));
         if (!modules.contains(key)) {
             loadExecutorJS(key);
             modules.add(accordName(key));
@@ -152,7 +152,7 @@ public abstract class Base {
         String modifyTime = loadedJS.get(putKey);
         String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
-            log.debug("load " + key + ".js for new modify." + " _ " + engineKEY.get());
+            log.info("load " + key + ".js for new modify." + " _ " + engineKEY.get());
             loadedJS.put(putKey, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
         }

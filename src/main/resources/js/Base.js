@@ -97,7 +97,7 @@ induction.Base = function (fileName) {
         },
         log: function (message, level) {
             if (!level) {
-                level = 'debug';
+                level = 'info';
             }
             _$log[level](' -- ' + fileName + '.js -- ' + message);
         }
