@@ -56,63 +56,47 @@ public abstract class Base {
      *
      * @param key js的名称。
      */
-    protected void init(String key) {
+    protected void init(String key) throws ScriptException {
         engineKEY.set(key);
         E = engineMap.get(key);
         if (E == null) {
             E = manager.getEngineByName("JavaScript");
-            try {
-                loadLibs();
-            } catch (ScriptException e) {
-                e.printStackTrace();
-                log.error(e);
-            }
+            loadLibs();
         }
         log.debug("engine map : " + engineMap);
     }
 
-    private void loadBaseJS(String key) {
-        try {
-            loadBase("Base" + "_" + key);
-            E.put("_$log", log);
-            E.put("_$jdbcTemplate", template);
-            E.put("_$tool", new Tool());
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (ScriptException e) {
-            e.printStackTrace();
-        }
+    private void loadBaseJS(String key) throws ScriptException, URISyntaxException {
+        loadBase("Base" + "_" + key);
+        E.put("_$log", log);
+        E.put("_$jdbcTemplate", template);
+        E.put("_$tool", new Tool());
     }
 
-    protected void loadJS(String key) {
+    protected void loadJS(String key) throws Exception {
         log.debug(MessageFormat.format("load js : " + BASE_JS_PATH + EXECUTE_JS_PATH + "/{0}.js", key));
-        try {
-            if (!modules.contains(key)) {
-                loadExecutorJS(key);
-                modules.add(accordName(key));
+        if (!modules.contains(key)) {
+            loadExecutorJS(key);
+            modules.add(accordName(key));
 
-                String calculateString = "(function(){return typeof induction." + accordName(key) + ";}())";
-                log.debug(calculateString);
-                String typeOfJS = E.eval(calculateString).toString();
-                log.debug("typeof " + key + " " + typeOfJS);
+            String calculateString = "(function(){return typeof induction." + accordName(key) + ";}())";
+            log.debug(calculateString);
+            String typeOfJS = E.eval(calculateString).toString();
+            log.debug("typeof " + key + " " + typeOfJS);
 
-                if (typeOfJS.equals("undefined")) {
-                    throw new Exception("未找到模块：induction." + accordName(key) + ",请检查" + key + ".js文件中模块命名是否正确。");
-                }
-
-                if (!"function".equals(typeOfJS)) {
-                    List<String> dependence = getModuleDependence(key);
-                    log.debug(MessageFormat.format("dependence of this module (induction.{0}) are {1}", key, dependence));
-                    for (String s : dependence) {
-                        loadJS(s);
-                    }
-                }
-            } else {
-                log.debug("load failed. Some other js has the same name has been loaded.");
+            if (typeOfJS.equals("undefined")) {
+                throw new Exception("未找到模块：induction." + accordName(key) + ",请检查" + key + ".js文件中模块命名是否正确。");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error(e);
+
+            if (!"function".equals(typeOfJS)) {
+                List<String> dependence = getModuleDependence(key);
+                log.debug(MessageFormat.format("dependence of this module (induction.{0}) are {1}", key, dependence));
+                for (String s : dependence) {
+                    loadJS(s);
+                }
+            }
+        } else {
+            log.debug("load failed. Some other js has the same name has been loaded.");
         }
     }
 
@@ -307,9 +291,15 @@ public abstract class Base {
     public abstract Object setParametersAndCall(String key, String parameters);
 
     public Object execute(String key, String parameters) {
-        init(key);
-        loadBaseJS(key);
-        loadJS(key);
+        try {
+            init(key);
+            loadBaseJS(key);
+            loadJS(key);
+        } catch (Exception e) {
+            e.printStackTrace();
+            recovery();
+        }
+
         engineMap.put(key, E);//保证引擎已经把所有的JS加载完成。
         Object rs = setParametersAndCall(key, parameters);
         cleanModules();
@@ -358,5 +348,14 @@ public abstract class Base {
 
     protected void cleanModules() {
         modules.clear();
+    }
+
+    /**
+     * 如果某个加载的JS出错，可能会导致引擎出现故障。之前加载过的JS可能会失效，这种情况下就需要
+     * 重新加载JS。
+     */
+    private void recovery() {
+        log.debug("recovery form some error..");
+        loadedJS.clear();
     }
 }
