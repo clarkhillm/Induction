@@ -222,12 +222,9 @@ public abstract class Base {
                 log.debug(f + "." + functionName + ")" + e);
                 return E.eval(f + "." + functionName + ")" + e).toString();
             }
-        } catch (ScriptException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
+            recovery();
         }
         return "{\"rs\":\"It seems some error occur,please check log.\"}";
     }
