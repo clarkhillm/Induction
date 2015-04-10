@@ -31,8 +31,10 @@ public class MainService {
     }
 
     @RequestMapping(value = "/{path}", method = RequestMethod.POST)
-    public Object switchInfo(@PathVariable("path") String path, @RequestBody String json, HttpServletResponse response) {
-        log.debug(MessageFormat.format("request path is {0} ----------------{1}------------------------", path, json));
+    public Object switchInfo(@PathVariable("path") String path,
+                             @RequestBody String json,
+                             HttpServletResponse response) {
+        log.debug(MessageFormat.format("-- {0} -----{1}--------", path, json));
         response.setHeader("Access-Control-Allow-Origin", "*");
         return executor.execute(path, json);
     }

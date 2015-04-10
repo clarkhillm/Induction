@@ -86,7 +86,7 @@ induction.relation.hostLinkInfo = [
                         JSON.stringify(_.map(s.linkswitch, function (swth) {
                             return {
                                 mainNodeName: s.ip + s.name,
-                                mainNodeType: 'storage',
+                                mainNodeType: 'host',
                                 mainsPort: swth.mainPortName,
                                 localWwn: swth.localWWN,
                                 otherNodeName: swth.ip + swth.name,

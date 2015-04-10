@@ -185,6 +185,7 @@ public abstract class Base {
     }
 
     private void loadLibs() throws ScriptException {
+        log.debug("resource path:" + BASE_JS_PATH);
         E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/lib/json2.js")));
         E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/lib/underscore-min.js")));
     }
