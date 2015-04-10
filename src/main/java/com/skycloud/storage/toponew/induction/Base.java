@@ -74,23 +74,27 @@ public abstract class Base {
     }
 
     protected void loadJS(String key) throws Exception {
-        log.info(MessageFormat.format("load js : " + BASE_JS_PATH + EXECUTE_JS_PATH + "/{0}.js", key));
+        log.info(MessageFormat.format("load js : " + BASE_JS_PATH + EXECUTE_JS_PATH +
+                "/{0}.js", key));
         if (!modules.contains(key)) {
             loadExecutorJS(key);
             modules.add(accordName(key));
 
-            String calculateString = "(function(){return typeof induction." + accordName(key) + ";}())";
+            String calculateString = "(function(){return typeof induction." + accordName(key) +
+                    ";}())";
             log.debug(calculateString);
             String typeOfJS = E.eval(calculateString).toString();
             log.debug("typeof " + key + " " + typeOfJS);
 
             if (typeOfJS.equals("undefined")) {
-                throw new Exception("未找到模块：induction." + accordName(key) + ",请检查" + key + ".js文件中模块命名是否正确。");
+                throw new Exception("未找到模块：induction." + accordName(key) + ",请检查" + key +
+                        ".js文件中模块命名是否正确。");
             }
 
             if (!"function".equals(typeOfJS)) {
                 List<String> dependence = getModuleDependence(key);
-                log.debug(MessageFormat.format("dependence of this module (induction.{0}) are {1}", key, dependence));
+                log.debug(MessageFormat.format("dependence of this module (induction.{0}) are {1}",
+                        key, dependence));
                 for (String s : dependence) {
                     loadJS(s);
                 }
@@ -112,7 +116,8 @@ public abstract class Base {
     @SuppressWarnings("unchecked")
     private List<String> getModuleDependence(String key) throws ScriptException, IOException {
         key = key.replaceAll("/", ".");
-        String moduleString = E.eval("(function(){return JSON.stringify(_.initial(induction." + key + "))}())").toString();
+        String moduleString = E.eval("(function(){return JSON.stringify(_.initial(induction." +
+                key + "))}())").toString();
         ObjectMapper mapper = new ObjectMapper();
         List<String> rs = mapper.readValue(moduleString, List.class);
         log.debug(MessageFormat.format("dependence {0}-{1}", key, rs));
@@ -133,8 +138,8 @@ public abstract class Base {
      */
     private void calculateNameSpace(String key) {
         try {
-            String nameSpaceString = E.eval("(function(){return JSON.stringify(induction.calculateTool().calculateNameSpace('"
-                    + key + "'))}())").toString();
+            String nameSpaceString = E.eval("(function(){return JSON.stringify(induction." +
+                    "calculateTool().calculateNameSpace('" + key + "'))}())").toString();
             log.debug("namespace sting : " + nameSpaceString);
             E.eval(nameSpaceString.replaceAll("\"", ""));
         } catch (ScriptException e) {
@@ -150,33 +155,44 @@ public abstract class Base {
         log.debug(MessageFormat.format("load js time .. {0}", loadedJS));
         calculateNameSpace(key);
         String modifyTime = loadedJS.get(putKey);
-        String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
+        String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH +
+                EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
             log.info("load " + key + ".js for new modify." + " _ " + engineKEY.get());
             loadedJS.put(putKey, lastModifyTime);
-            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js")));
+            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH +
+                    EXECUTE_JS_PATH + "/" + key + ".js")));
         }
     }
 
     private void loadBase(String baseJs) throws URISyntaxException, ScriptException {
         String modifyTime = loadedJS.get(baseJs);
-        String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + "/Base.js").toURI()).lastModified() + "";
+        String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH +
+                "/Base.js").toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
             log.debug("load Base.js for new modify.");
             loadedJS.put(baseJs, lastModifyTime);
-            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/Base.js")));
+            E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH +
+                    "/Base.js")));
         }
     }
 
+    /**
+     * 此方法其实可以不需要，不过我觉得这些lib应该是全局的。
+     * @throws ScriptException
+     */
     private void loadLibs() throws ScriptException {
         log.debug("resource path:" + BASE_JS_PATH);
-        E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/lib/json2.js")));
-        E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/lib/underscore-min.js")));
+        E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH +
+                "/lib/json2.js")));
+        E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH +
+                "/lib/underscore-min.js")));
     }
 
     protected String executeMethod(String key, String functionName) {
         try {
-            String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())").toString();
+            String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())")
+                    .toString();
             if ("function".equals(typeOfJS)) {
                 return E.eval("(function($){return JSON.stringify(induction." + key + "($)." +
                         functionName + ");}(induction.Base('" + key + "')))").toString();
@@ -189,7 +205,8 @@ public abstract class Base {
                 for (String module : modules) {
                     List<String> dependence = getModuleDependence(module);
                     if (dependence.contains(module)) {
-                        throw new Exception(MessageFormat.format("can not dependence self.({0})", key));
+                        throw new Exception(MessageFormat.format("can not dependence self.({0})",
+                                key));
                     }
                     ds.add(new DependenceModel(module, dependence));
                     dsMap.put(module, dependence);
@@ -200,7 +217,8 @@ public abstract class Base {
                 for (DependenceModel d : ds) {
                     for (String name : d.dependence) {
                         if (dsMap.get(accordName(name)).contains(accordName(d.name))) {
-                            throw new Exception(MessageFormat.format("There is a circular dependency. ({0}-{1})", name, d.name));
+                            throw new Exception(MessageFormat.format("There is a circular" +
+                                    " dependency. ({0}-{1})", name, d.name));
                         }
                     }
                 }
@@ -257,9 +275,11 @@ public abstract class Base {
             dot = ",";
         }
         if (flag) {
-            return "(function($){return induction." + accordName(key) + "($" + dot + dependence + ");})(induction.Base('" + key + "'))";
+            return "(function($){return induction." + accordName(key) +
+                    "($" + dot + dependence + ");})(induction.Base('" + key + "'))";
         } else {
-            return "(function($){return _.last(induction." + accordName(key) + ")($" + dot + dependence + ");})(induction.Base('" + key + "'))";
+            return "(function($){return _.last(induction." + accordName(key) +
+                    ")($" + dot + dependence + ");})(induction.Base('" + key + "'))";
         }
     }
 
