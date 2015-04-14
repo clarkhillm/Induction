@@ -5,7 +5,7 @@
 induction.relation.SQL = function ($) {
     return {
         switchSQL: 'SELECT A.ID,A.IP,A.NAME,B.WWN ' +
-        'FROM STOR_SYSTEM A ,SWITCH B WHERE A.ID=B.ID',
+        'FROM STOR_SYSTEM A ,SWITCH B WHERE A.ID=B.SYS_ID',
 
         switchPortSQL: 'SELECT SYS_ID, SLOT_ID, PORT_ID, ELEMENT_ID ,NAME,WWN ' +
         'FROM SWITCH_PORT WHERE WWN!=\'\' AND (@C)',

@@ -62,7 +62,13 @@ induction.generateRelationsTask = [
                 });
                 //return {length: storages.length, storage: storages};
 
+                $.log(sql.physicalSQL);
                 var hosts = $queryForList(sql.physicalSQL);
+                hosts = _.map(hosts, function (h) {
+                    h.WWN = h.WWN || '';
+                    h.WWN = h.WWN.replace(/:/g, '').toLowerCase();
+                    return h;
+                });
                 //return hosts;
 
                 switchLink.calculate(switches, storages, hosts);
