@@ -7,6 +7,7 @@
     var modules = induction.modules || [];
 
     var loadModules = _.map(modules, function (m) {
+        m = m.replace(/induction./g, '');
         return m.replace(/\./g, '/');
     });
 

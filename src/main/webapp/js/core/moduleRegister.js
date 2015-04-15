@@ -8,7 +8,7 @@ induction.core.config = {
     logLevel: 'DEBUG'
 };
 
-induction.modules = ['main', 'common.test'];
+induction.modules = ['induction.main', 'induction.common.test'];
 
 /**
  * 入口模块
