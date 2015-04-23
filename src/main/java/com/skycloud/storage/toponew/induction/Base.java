@@ -7,11 +7,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -133,6 +131,7 @@ public abstract class Base {
      * 复杂命名空间是因为被依赖的模块在文件夹中。
      * <p/>
      * 计算是在JS中完成的。
+     * 注意，被执行的JS必须要有返回值。
      *
      * @param key 模块的名称
      */
@@ -147,7 +146,7 @@ public abstract class Base {
         }
     }
 
-    private void loadExecutorJS(String key) throws URISyntaxException, ScriptException {
+    private void loadExecutorJS(String key) throws Exception {
         String putKey = key;
         if (!putKey.equals(engineKEY.get())) {
             putKey = putKey + "_" + engineKEY.get();
@@ -155,8 +154,11 @@ public abstract class Base {
         log.debug(MessageFormat.format("load js time .. {0}", loadedJS));
         calculateNameSpace(key);
         String modifyTime = loadedJS.get(putKey);
-        String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH +
-                EXECUTE_JS_PATH + "/" + key + ".js").toURI()).lastModified() + "";
+        URL url = this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js");
+        if (url == null) {
+            throw new FileNotFoundException("file " + key + ".js not found.");
+        }
+        String lastModifyTime = new File(url.toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
             log.info("load " + key + ".js for new modify." + " _ " + engineKEY.get());
             loadedJS.put(putKey, lastModifyTime);
@@ -178,7 +180,8 @@ public abstract class Base {
     }
 
     /**
-     * 此方法其实可以不需要，不过我觉得这些lib应该是全局的。
+     * 此方法其实可以不需要，不过我觉得lib应该是全局的。
+     *
      * @throws ScriptException
      */
     private void loadLibs() throws ScriptException {
@@ -194,8 +197,13 @@ public abstract class Base {
             String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())")
                     .toString();
             if ("function".equals(typeOfJS)) {
-                return E.eval("(function($){return JSON.stringify(induction." + key + "($)." +
-                        functionName + ");}(induction.Base('" + key + "')))").toString();
+                Object o = E.eval("(function($){return JSON.stringify(induction." + key + "($)." +
+                        functionName + ");}(induction.Base('" + key + "')))");
+                if (o != null) {//可能被执行的方法是没有返回值的。
+                    return o.toString();
+                } else {
+                    return "{}";
+                }
             } else {
                 List<DependenceModel> ds = new ArrayList<DependenceModel>();
                 Map<String, List<String>> dsMap = new HashMap<String, List<String>>();
@@ -205,8 +213,7 @@ public abstract class Base {
                 for (String module : modules) {
                     List<String> dependence = getModuleDependence(module);
                     if (dependence.contains(module)) {
-                        throw new Exception(MessageFormat.format("can not dependence self.({0})",
-                                key));
+                        throw new Exception(MessageFormat.format("can not dependence self.({0})", key));
                     }
                     ds.add(new DependenceModel(module, dependence));
                     dsMap.put(module, dependence);
@@ -217,8 +224,7 @@ public abstract class Base {
                 for (DependenceModel d : ds) {
                     for (String name : d.dependence) {
                         if (dsMap.get(accordName(name)).contains(accordName(d.name))) {
-                            throw new Exception(MessageFormat.format("There is a circular" +
-                                    " dependency. ({0}-{1})", name, d.name));
+                            throw new Exception(MessageFormat.format("There is a circular dependency. ({0}-{1})", name, d.name));
                         }
                     }
                 }

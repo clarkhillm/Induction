@@ -4,7 +4,7 @@
  */
 
 induction.core.config = {
-    basePath: '/js',
+    basePath: 'js',
     logLevel: 'DEBUG'
 };
 
