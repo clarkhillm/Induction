@@ -1,4 +1,4 @@
-package com.skycloud.storage.toponew.induction;
+package com.skycloud.storage.induction;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
