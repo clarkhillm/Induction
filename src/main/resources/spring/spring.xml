@@ -3,11 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean class="com.skycloud.storage.toponew.induction.Executor"
-          id="switchExecute">
+    <bean class="com.skycloud.induction.Executor" id="switchExecute">
         <property name="template" ref="storageCoreJdbcTemplate"/>
-    </bean>
-    <bean class="com.skycloud.storage.toponew.task.generateRelationsTask" id="relation_task">
-        <property name="executor" ref="switchExecute"/>
     </bean>
 </beans>

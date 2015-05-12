@@ -69,32 +69,10 @@ induction.calculateTool = function () {
 /**
  * 所有的模块都会依赖这个基础模块，不会共享状态。不用显式的依赖，有由框架主动的注入。
  * 所以这个对象最好不要太复杂。
- * @param fileName
- * @returns {{checkParameters: Function, start: Function, log: Function}}
- * @constructor
+ *
  */
 induction.Base = function (fileName) {
     return {
-        /**
-         * 处理参数,排除错误的情况。
-         * @param p a json string like : {"pageNum":1,"rows":20,"conditions":{"ip":[],"name":""}}
-         * @returns {*}
-         */
-        checkParameters: function (p) {
-            if (!(p && p.conditions)) {
-                this.log('parameter input ' + p);
-                p = {
-                    "pageNum": 1,
-                    "rows": 20,
-                    "conditions": {"ip": [], "name": []}
-                };
-            }
-            this.log('parameter :' + '\n' + JSON.stringify(p));
-            return p;
-        },
-        start: function (pageNum, rows) {
-            return $JavaIntArray((pageNum - 1) * rows, rows);
-        },
         log: function (message, level) {
             if (!level) {
                 level = 'info';

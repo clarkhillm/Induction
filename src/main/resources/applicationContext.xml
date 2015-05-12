@@ -10,7 +10,7 @@
     <context:property-placeholder location="classpath:jdbc.properties" ignore-unresolvable="true"/>
     <context:annotation-config/>
 
-    <context:component-scan base-package="com.skycloud.storage.*"/>
+    <context:component-scan base-package="com.skycloud.*"/>
 
     <import resource="classpath:/spring/spring.xml"/>
     <import resource="classpath:DataSourceBean.xml"/>
