@@ -5,7 +5,7 @@
 induction.main = ['utils/dateUtil', function ($$, dateUtil) {
     return {
         execute: function () {
-            $$.log('do some test. ' + dateUtil.toString(new Date()));
+            $$.log('do some test. ' + _$test + dateUtil.toString(new Date()));
             return 'Hello world!'
         }
     }

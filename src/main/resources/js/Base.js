@@ -3,16 +3,13 @@
  * 1.凡是从java那边put过来的对象，全部以_$开头
  * 2.凡是全局对象包括方法，以$开头。
  * 3.凡是调用java对象中的方法，不要用apply或者call，Nashorn引擎不支持这种调用。
- *
  */
-var javaArray = java.lang.reflect.Array;
 var mf = java.text.MessageFormat.format;
-var javaInteger = java.lang.Integer;
 var UUID = java.util.UUID;
 
 var _$log;
-var _$jdbcTemplate;
 var _$tool;
+var _$jdbcTemplate;
 
 var induction = {};
 
@@ -32,16 +29,8 @@ var $queryForList = function () {
     }
 };
 
-var $JavaIntArray = function () {
-    var a = javaArray.newInstance(new javaInteger(1).getClass(), arguments.length);
-    _.each(arguments, function (arg, i) {
-        a[i] = arg;
-    });
-    return a;
-};
-
 /**
- * 计算工具，会被java调用，用来简化java语言的计算。
+ * 计算工具，会被java调用，用来简化java语言的计算。主要在Base中被调用。
  * 不要试图实现过于复杂的计算。
  * 还要注意一点，和java交互只能使用字符串等基础类型，比较方便。
  *

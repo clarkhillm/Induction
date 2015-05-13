@@ -2,7 +2,6 @@ package com.skycloud.induction;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -20,6 +19,9 @@ import java.util.*;
  */
 public abstract class Base {
 
+    /**
+     * 这个路径要位于类路径下。
+     */
     private static final String BASE_JS_PATH = "/js";
     private static final String EXECUTE_JS_PATH = "/execute";
     private static final String[] libs = {"underscore-min.js", "json2.js", "moment.min.js"};
@@ -41,13 +43,6 @@ public abstract class Base {
      */
     private ThreadLocal<String> engineKEY = new ThreadLocal<String>();
 
-    private JdbcTemplate template;
-
-    public void setTemplate(JdbcTemplate template) {
-        this.template = template;
-    }
-
-
     /**
      * 加载Base.js以及lib。
      * 为Base注入数据。
@@ -67,9 +62,25 @@ public abstract class Base {
 
     private void loadBaseJS(String key) throws ScriptException, URISyntaxException {
         loadBase("Base" + "_" + key);
+        putObjectToJS();
+    }
+
+    private void putObjectToJS() {
         E.put("_$log", log);
-        E.put("_$jdbcTemplate", template);
         E.put("_$tool", new Tool());
+    }
+
+    /**
+     * 向JS中put一些可用的java对象。
+     * 1.只能push到Base.js中
+     * 2.Base.js里面有对应的JS变量。
+     * 3.子类中需要第一个调用的父类方法。
+     *
+     * @param JSField JS 的变量，只能是全局变量。
+     * @param object  Java 对象。
+     */
+    protected void putObjectToJS(String JSField, Object object) {
+        E.put(JSField, object);
     }
 
     protected void loadJS(String key) throws Exception {
@@ -191,6 +202,13 @@ public abstract class Base {
         }
     }
 
+    /**
+     * 子类中调用，用来执行JS主函数，主函数由子类指定。不过需要和JS中一致。
+     *
+     * @param key          引擎标识
+     * @param functionName 执行函数的名字，以及参数：如：‘execute(’+parameter+')';
+     * @return 执行结果。
+     */
     protected String executeMethod(String key, String functionName) {
         try {
             String typeOfJS = E.eval("(function(){return typeof induction." + key + ";}())").toString();
@@ -323,8 +341,23 @@ public abstract class Base {
         }
     }
 
-    public abstract Object setParametersAndCall(String key, String parameters);
+    /**
+     * 主要制定JS中的主执行函数是什么。
+     * 需要调用父类的executeMethod方法。并决定是否要处理返回值。
+     *
+     * @param key        和引擎相关的一个KEY。
+     * @param parameters 传给JS主执行函数的参数。
+     * @return 执行结果。
+     */
+    protected abstract Object setParametersAndCall(String key, String parameters);
 
+    /**
+     * 这是程序的入口。
+     *
+     * @param key        和引擎相关的一个KEY。
+     * @param parameters 传给JS主执行函数的参数。
+     * @return 执行的结果。
+     */
     public Object execute(String key, String parameters) {
         try {
             init(key);
@@ -334,7 +367,6 @@ public abstract class Base {
             e.printStackTrace();
             recovery();
         }
-
         engineMap.put(key, E);//保证引擎已经把所有的JS加载完成。
         Object rs = setParametersAndCall(key, parameters);
         cleanModules();
