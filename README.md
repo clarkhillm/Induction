@@ -59,6 +59,34 @@ com.skycloud.induction.Base.java
 
 建议不要改动，但是如果你有自己新的类库需要加载的话，可以改动这个代码。但是需要注意的是，这些类库都是作为全局变量加载的。 **这个机制是暂时的，后续可能会改动**
 
+此外还需要注意的是Base中的一个内部静态类tool：
+
+     /**
+     * 这个类是为了给JS提供一些处理Java结果的工具。
+     * 其中的方法会在JS中使用。因此编译器可能会报unused的警告，可以乎略。
+     */
+    public static class Tool {
+        /**
+         * 这个工具是为了jdbcTemplate的查询结果，需要被转换成JSON字符串，以便JS处理。
+         *
+         * @param result 某个java对象。这里应该是jdbcTemplate的查询结果，是一个java的map对象。
+         * @return JSON string
+         */
+        @SuppressWarnings("unused")
+        public String toJSON(List result) {
+            ObjectMapper mapper = new ObjectMapper();
+            StringWriter writer = new StringWriter();
+            try {
+                mapper.writeValue(writer, result);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return writer.toString();
+        }
+    }
+
+这个类可以在JS中使用：`_$tool`来调用。如果你有什么特殊的方法可以放在这里，让JS调用到，但是需要注意参数尽可能是字符串。（**这个机制是暂时的**）
+
 真正在工作中需要自己实现一个Base.java的子类，比如项目中的Executor类。
 
     public class Executor extends Base {
@@ -76,7 +104,6 @@ com.skycloud.induction.Base.java
     }}
 
 **注意**`putObjectToJS("_$test","test ");`这句，这句的意思是向JS中注入一个java的对象。这个对象在JS中可以使用`_$test`这个变量名称访问。注意，这是一个全局变量，所以我们给了一个特殊的开头，以便标记。
-
 
 
 
