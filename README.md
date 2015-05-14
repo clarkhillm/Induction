@@ -1,42 +1,16 @@
 #Induction
 利用java的javascript引擎来工作。
-目的：
+目的
+----
+    1.更容易的处理数据
+    2.更容易调试
 
-	1. 降低难度
-	2. 便于调试
+问题
+-----
+不同版本的js引擎略有不同。需要考虑兼容性，目前已知的有：Nashorn引擎更贴近与java本身，直接引用java对象比较容易，但操作的方式更类似于java，不能用apply和call来调用java对象的方法，js对象没有问题。
 
-问题：
+1.6的js引擎没有JSON对象。同时，1.6的JS引擎有可能会有些类库不支持，比如momentJS
 
-性能。但这个问题并不确定。其实性能往往不是什么大的问题。因为我们每次处理的时候都需要去加载js文件，这样做的目的是保证可以及时的获取文件的变化，就如同所有的动态语言一样，但是这样不可避免的带来了IO的问题。不过也可能是我杞人忧天了，这样的性能损耗根本不需要计较。除非有大量同时的IO操作，当然，我觉得这是不可能的。
-
-不过，除了加载文件，引擎也需要运转，这样的确是不合适的。应该分析文件的时间，或者MD5。MD5需要对文件做hash，这个其实也是有性能损耗的。比较时间吧。
-
-javascript的模块  这是个问题，因为我们不可能什么都在一个JS文件里面搞定。需要在多个JS文件之间管理依赖关系。
-
-
-详述：
-
-我们有一堆纷乱的数据需要处理，在其中找到头绪。
-
-数据来源是数据库，来自多张相互关联的表。java不善于处理这样的的数据。事实上，java根本就不适于做数据的处理，它缺乏工具，平添复杂性。
-
-
-	* java复杂获取原始的数据（通过JDBC）
-	* javascript负责对这些数据进行处理，把结果以JSON的形式返回给java。
-	* java把这样的JSON返回给前台。
-
-实现：
-
-	* 目前实现是通过注入了大量的java对象来实现了一些功能，包括对数据的获取，也是通过注入srping的jdbcTemplate对象来完成的。所有的处理目前都在js这边。java那边基本上啥也不干。
-	* 实现关注了不同jdk之间的js引擎兼容性的问题。
-
-
-
-已知问题：不同版本的js引擎略有不同。需要考虑兼容性，目前已知的有：Nashorn引擎更贴近与java本身，直接引用java对象比较容易，但操作的方式更类似于java，不能用apply和call来调用java对象的方法，js对象没有问题。估计可以使用java的反射机制，这个问题可能以后会被解决。还有一个问题，1.6的js引擎没有JSON对象。
-
-设计目的
-=======
-设计的目的，本来其实很简单的。Java在数据处理方面其实并不是特别的方便，特别是对于需要大量数据变换的场景尤其不适。对于Java这样的编程语言来说，你如果想很好的处理数据，就需要首先为你的数据定义好类型。显然，这就是所谓PO的由来。当然对于这样的类型，我们其实也很不好做抽象，因为它就是数据，没有什么共性，可能就是离散的。
 
 工作原理
 =======
@@ -60,6 +34,61 @@ JS变得有用，一个很大的原因就是其能够模块化。当然，JS本�
 对数据的变换替代各种O
 -----
 Java在做类似事情的时候，需要至少两种O：一种是实例PO和数据库的表中的行所对应。一种是TO这个和生成的JSON数据相关。可能还有VO，这个是对数据的验证。JS是通过underscoreJS这样的类库通过filter、map等这样函数化的处理来完成这一过程的。我认为，后者是好的，更灵活，更符合人类的逻辑能力。
+
+如何使用
+=======
+induction由两部分组成，一部分是java写的，用来加载JS以及用JDK自带的JS引擎来运行这些JS，同时会返回一个String类型的结果。
+另一部分是JS写的，用来处理逻辑，以及一些基本的操作，比如日志。Base.java和Base.js都是必须的。使用的时候，这两部分都要和工作的代码合并。Base.java不适合在jar包中工作，因为它需要加载很多JS文件，而这些js文件是不能打入jar包的，主要是从维护性上来考虑的。所以工作的时候你需要直接把源码拷贝到你的工作目录来。当然也可以通过IDE搞一个项目的依赖。
+
+Java部分
+-------
+com.skycloud.induction.Base.java
+这是java部分的基类，主要封装的JS的加载，模块化的实现，以及JS引擎的调用。
+
+其中有一些常量是可以配置的：
+
+    private static final String BASE_JS_PATH = "/js";
+    private static final String EXECUTE_JS_PATH = "/execute";
+    private static final String[] libs = {"underscore-min.js", "json2.js", "moment.min.js"};
+
+`BASE_JS_PATH`指的是你的JS在类路径的根目录名称。
+
+`EXECUTE_JS_PATH`你写的JS的执行目录是什么。
+
+`libs`你需要加载的类库有哪些。
+
+建议不要改动，但是如果你有自己新的类库需要加载的话，可以改动这个代码。但是需要注意的是，这些类库都是作为全局变量加载的。**这个机制是暂时的，后续可能会改动**
+
+真正在工作中需要自己实现一个Base.java的子类，比如项目中的Executor类。
+
+    public class Executor extends Base {
+
+    @Override
+    public Object setParametersAndCall(String key, String parameters) {
+        putObjectToJS("_$test","test ");
+        return executeMethod(key, "execute(" + parameters + ")");
+    }
+
+    public static void main(String[] args) {
+        Executor executor = new Executor();
+        Object rs = executor.execute("main", "");
+        System.out.println("rs = " + rs);
+    }}
+
+**注意**`putObjectToJS("_$test","test ");`这句，这句的意思是向JS中注入一个java的对象。这个对象在JS中可以使用`_$test`这个变量名称访问。注意，这是一个全局变量，所以我们给了一个特殊的开头，以便标记。
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
