@@ -26,7 +26,6 @@ public abstract class Base {
     private static final String EXECUTE_JS_PATH = "/execute";
     private static final String[] libs = {"underscore-min.js", "json2.js", "moment.min.js"};
 
-    private ScriptEngineManager manager = new ScriptEngineManager();
     protected ScriptEngine E;
 
     protected Logger log = Logger.getLogger(this.getClass());
@@ -54,7 +53,7 @@ public abstract class Base {
         engineKEY.set(key);
         E = engineMap.get(key);
         if (E == null) {
-            E = manager.getEngineByName("JavaScript");
+            E = new ScriptEngineManager().getEngineByName("JavaScript");
             loadLibs();
         }
         log.debug("engine map : " + engineMap);
