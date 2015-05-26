@@ -329,6 +329,7 @@ public abstract class Base {
         return key.replaceAll("/", ".");
     }
 
+    @SuppressWarnings("unused")//此方法可能会被子类使用，如果子类希望返回一个JSON对象。
     protected Object toJSONObject(String json) {
         log.debug(MessageFormat.format("returned json string is {0}", json));
         ObjectMapper mapper = new ObjectMapper();
