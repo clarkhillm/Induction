@@ -4,8 +4,9 @@
  * 2.凡是全局对象包括方法，以$开头。
  * 3.凡是调用java对象中的方法，不要用apply或者call，Nashorn引擎不支持这种调用。
  */
+var javaArray = java.lang.reflect.Array;
 var mf = java.text.MessageFormat.format;
-var UUID = java.util.UUID;
+var javaInteger = java.lang.Integer;
 
 var _$log;
 var _$tool;
@@ -27,6 +28,14 @@ var $queryForList = function () {
     } else {
         return JSON.parse(_$tool.toJSON(_$jdbcTemplate.queryForList(arguments[0])));
     }
+};
+
+var $JavaIntArray = function () {
+    var a = javaArray.newInstance(new javaInteger(1).getClass(), arguments.length);
+    _.each(arguments, function (arg, i) {
+        a[i] = arg;
+    });
+    return a;
 };
 
 /**
