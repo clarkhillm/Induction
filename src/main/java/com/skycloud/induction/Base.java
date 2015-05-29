@@ -385,7 +385,7 @@ public abstract class Base {
          * @return JSON string
          */
         @SuppressWarnings("unused")
-        public String toJSON(List result) {
+        public String toJSON(Object result) {
             ObjectMapper mapper = new ObjectMapper();
             StringWriter writer = new StringWriter();
             try {
