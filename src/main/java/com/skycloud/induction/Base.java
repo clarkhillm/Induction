@@ -31,7 +31,6 @@ public abstract class Base {
     protected Logger log = Logger.getLogger(this.getClass());
     private Map<String, ScriptEngine> engineMap = new HashMap<String, ScriptEngine>();
     private Map<String, String> loadedJS = new HashMap<String, String>();
-    private Set<String> modules = new HashSet<String>();
 
     /**
      * 出于设计上的需要，我们必须保存这个全局变量，但是这个类是一个单例
@@ -41,6 +40,11 @@ public abstract class Base {
      * 此变量作为引擎的一个标识，必须保证不会被多个线程在运行过程中改写。
      */
     private ThreadLocal<String> engineKEY = new ThreadLocal<String>();
+    /**
+     * 这个属性也和线程相关。
+     * 这个属性表示的是每个引擎所加载的JS模块。
+     */
+    private ThreadLocal<Set<String>> modules_local = new ThreadLocal<Set<String>>();
 
     /**
      * 加载Base.js以及lib。
@@ -56,6 +60,7 @@ public abstract class Base {
             E = new ScriptEngineManager().getEngineByName("JavaScript");
             loadLibs();
         }
+        modules_local.set(new HashSet<String>());
         log.debug("engine map : " + engineMap);
     }
 
@@ -85,9 +90,9 @@ public abstract class Base {
     protected void loadJS(String key) throws Exception {
         log.info(MessageFormat.format("load js : " + BASE_JS_PATH + EXECUTE_JS_PATH +
                 "/{0}.js", key));
-        if (!modules.contains(key)) {
+        if (!modules_local.get().contains(key)) {
             loadExecutorJS(key);
-            modules.add(accordName(key));
+            modules_local.get().add(accordName(key));
 
             String calculateString = "(function(){return typeof induction." + accordName(key) +
                     ";}())";
@@ -219,9 +224,9 @@ public abstract class Base {
                 List<DependenceModel> ds = new ArrayList<DependenceModel>();
                 Map<String, List<String>> dsMap = new HashMap<String, List<String>>();
 
-                log.debug(MessageFormat.format("dependence modules list is {0}", modules));
+                log.debug(MessageFormat.format("dependence modules list is {0}", modules_local.get()));
 
-                for (String module : modules) {
+                for (String module : modules_local.get()) {
                     List<String> dependence = getModuleDependence(module);
                     if (dependence.contains(module)) {
                         throw new Exception(MessageFormat.format("can not dependence self.({0})", key));
@@ -414,7 +419,7 @@ public abstract class Base {
     }
 
     protected void cleanModules() {
-        modules.clear();
+        modules_local.get().clear();
     }
 
     /**
