@@ -30,7 +30,6 @@ public abstract class Base {
 
     protected Logger log = Logger.getLogger(this.getClass());
     private Map<String, ScriptEngine> engineMap = new HashMap<String, ScriptEngine>();
-    private Map<String, String> loadedJS = new HashMap<String, String>();
 
     /**
      * 出于设计上的需要，我们必须保存这个全局变量，但是这个类是一个单例
@@ -40,11 +39,8 @@ public abstract class Base {
      * 此变量作为引擎的一个标识，必须保证不会被多个线程在运行过程中改写。
      */
     private ThreadLocal<String> engineKEY = new ThreadLocal<String>();
-    /**
-     * 这个属性也和线程相关。
-     * 这个属性表示的是每个引擎所加载的JS模块。
-     */
     private ThreadLocal<Set<String>> modules_local = new ThreadLocal<Set<String>>();
+    private ThreadLocal<Map<String, String>> loadedJS_local = new ThreadLocal<Map<String, String>>();
 
     /**
      * 加载Base.js以及lib。
@@ -54,14 +50,15 @@ public abstract class Base {
      * @param key js的名称。
      */
     protected void init(String key) throws ScriptException {
+        log.debug("engine map : " + engineMap);
+        modules_local.set(new HashSet<String>());
+        loadedJS_local.set(new HashMap<String, String>());
         engineKEY.set(key);
         E = engineMap.get(key);
         if (E == null) {
             E = new ScriptEngineManager().getEngineByName("JavaScript");
             loadLibs();
         }
-        modules_local.set(new HashSet<String>());
-        log.debug("engine map : " + engineMap);
     }
 
     private void loadBaseJS(String key) throws ScriptException, URISyntaxException {
@@ -101,8 +98,8 @@ public abstract class Base {
             log.debug("typeof " + key + " " + typeOfJS);
 
             if (typeOfJS.equals("undefined")) {
-                throw new Exception("未找到模块：induction." + accordName(key) + ",请检查" + key +
-                        ".js文件中模块命名是否正确。");
+                throw new Exception("can not find module : induction." + accordName(key) + ", please check " + key +
+                        ".js file.");
             }
 
             if (!"function".equals(typeOfJS)) {
@@ -168,9 +165,9 @@ public abstract class Base {
         if (!putKey.equals(engineKEY.get())) {
             putKey = putKey + "_" + engineKEY.get();
         }
-        log.debug(MessageFormat.format("load js time .. {0}", loadedJS));
+        log.debug(MessageFormat.format("load js time .. {0}", loadedJS_local.get()));
         calculateNameSpace(key);
-        String modifyTime = loadedJS.get(putKey);
+        String modifyTime = loadedJS_local.get().get(putKey);
         URL url = this.getClass().getResource(BASE_JS_PATH + EXECUTE_JS_PATH + "/" + key + ".js");
         if (url == null) {
             throw new FileNotFoundException("file " + key + ".js not found.");
@@ -178,18 +175,18 @@ public abstract class Base {
         String lastModifyTime = new File(url.toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
             log.info("load " + key + ".js for new modify." + " _ " + engineKEY.get());
-            loadedJS.put(putKey, lastModifyTime);
+            loadedJS_local.get().put(putKey, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH +
                     EXECUTE_JS_PATH + "/" + key + ".js")));
         }
     }
 
     private void loadBase(String baseJs) throws URISyntaxException, ScriptException {
-        String modifyTime = loadedJS.get(baseJs);
+        String modifyTime = loadedJS_local.get().get(baseJs);
         String lastModifyTime = new File(this.getClass().getResource(BASE_JS_PATH + "/Base.js").toURI()).lastModified() + "";
         if (modifyTime == null || !modifyTime.equals(lastModifyTime)) {
             log.debug("load Base.js for new modify.");
-            loadedJS.put(baseJs, lastModifyTime);
+            loadedJS_local.get().put(baseJs, lastModifyTime);
             E.eval(new InputStreamReader(this.getClass().getResourceAsStream(BASE_JS_PATH + "/Base.js")));
         }
     }
@@ -428,6 +425,6 @@ public abstract class Base {
      */
     private void recovery() {
         log.debug("recovery form some error..");
-        loadedJS.clear();
+        loadedJS_local.get().clear();
     }
 }
