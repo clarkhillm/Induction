@@ -281,7 +281,7 @@ public abstract class Base {
             e.printStackTrace();
             recovery();
         }
-        return "{\"rs\":\"It seems some error occur,please check log.\"}";
+        return "{\"error\":\"It seems some error occur,please check log.\"}";
     }
 
     protected DependenceTreeNode createDependenceTree(Map<String, List<String>> input, String key) {
