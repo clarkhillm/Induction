@@ -278,6 +278,7 @@ public abstract class Base {
             }
 
         } catch (Exception e) {
+            log.error(e);
             e.printStackTrace();
             recovery();
         }
@@ -338,6 +339,7 @@ public abstract class Base {
         try {
             return mapper.readValue(json, Object.class);
         } catch (IOException e) {
+            log.error(e);
             e.printStackTrace();
             return "[]";
         }
@@ -367,6 +369,7 @@ public abstract class Base {
             loadJS(key);
         } catch (Exception e) {
             e.printStackTrace();
+            log.error(e);
             recovery();
         }
         engineMap.put(key, E);//保证引擎已经把所有的JS加载完成。
